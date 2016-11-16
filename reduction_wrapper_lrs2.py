@@ -194,8 +194,9 @@ if LRS2_spec == 'B':
 #############################
 
 #specifies directories for lines and mapping/cen files for LRS2 in the LRS2 config directory 
-linesdir = configdir +'/lines_files'
-mapdir = configdir + '/mapping_files/'
+linesdir    = configdir + '/lines_files'
+mapdir      = configdir + '/mapping_files/'
+pixflatdir  = configdir + '/pixel_flats/'
 
 ##################
 # Define Classes #
@@ -728,14 +729,14 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
     # this will be 501 for Red
     # for Blue it is 502 for data taken before 11/16/2016 but 503 if taken after
     if LRS2_spec == "L":
-        ucam = ["501"]
+        ucam = "501"
     if LRS2_spec == "R":
         old = [ o for o in oframes if o.specid == '502' ]
         new = [ o for o in oframes if o.specid == '503' ]
         if len(old) > 0:
-            ucam = ["502"]
+            ucam = "502"
         elif len(new) > 0:
-            ucam = ["503"]
+            ucam = "503"
         else:
             sys.exit('You do not have LRS2 data')
 
@@ -765,18 +766,18 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             print ('*****************************')
             extractfits ( trimsec, vframes, sp )       # for all frames
             
-            for uca in ucam:
-                vframesselect  = [v for v in vframes if v.type == "zro" and v.specid == uca] 
-                print ('**************************')
-                print ('* BUILD MASTERBIAS FOR '+sp+' *')
-                print ('**************************')
-                meanbiasfits   ( sp, uca, redux_dir, 'masterbias', meanfitsopts, vframesselect ) # meanfits for masterbias for unique specid
-                masterbiasname = op.join ( redux_dir, 'masterbias' + '_' + uca + '_' + sp + '.fits' ) 
-                oframesselect  = [o for o in oframes if o.specid == uca] 
-                print ('*****************************')
-                print ('* SUBTRACT MASTERBIAS FOR '+sp+' *')
-                print ('*****************************')
-                subtractbias   ( oframesselect, masterbiasname, sp) # for all frames
+
+            vframesselect  = [v for v in vframes if v.type == "zro" and v.specid == ucam] 
+            print ('**************************')
+            print ('* BUILD MASTERBIAS FOR '+sp+' *')
+            print ('**************************')
+            meanbiasfits   ( sp, ucam, redux_dir, 'masterbias', meanfitsopts, vframesselect ) # meanfits for masterbias for unique specid
+            masterbiasname = op.join ( redux_dir, 'masterbias' + '_' + ucam + '_' + sp + '.fits' ) 
+            oframesselect  = [o for o in oframes if o.specid == ucam] 
+            print ('*****************************')
+            print ('* SUBTRACT MASTERBIAS FOR '+sp+' *')
+            print ('*****************************')
+            subtractbias   ( oframesselect, masterbiasname, sp) # for all frames
         
         print ('*******************************************')
         print ('* COMBINING CCD AMPS - MULTIPYING BY GAIN *')
@@ -800,11 +801,10 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('*************************')
         print ('* DIVDING BY PIXEL FLAT *')
         print ('*************************')
-        for uca in ucam:
-            for side in SPECBIG:
-                pflat = op.join( pixflatdir, "pixelflat_cam{:03d}_{:s}.fits".format( uca, side.upper() ) )
-                opt = "--file {:s}".format(pflat)
-                dividepixelflat(oframes, opt, side, uca)
+        for side in SPECBIG:
+            pflat = op.join( pixflatdir, "pixelflat_cam{:03d}_{:s}.fits".format( ucam, side.upper() ) )
+            opt = "--file {:s}".format(pflat)
+            dividepixelflat(oframes, opt, side, ucam)
     
     # Create Master Dark Frames
     if masterdark:
@@ -812,10 +812,9 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('* BUILDING MASTERDARK *')
         print ('***********************')
         for side in SPECBIG:
-            for uca in ucam:
-                dframesselect = [d for d in dframes if d.specid == uca] 
-                meandarkfits ( side, uca, redux_dir, 'masterdark', meanfitsopts, dframesselect ) # meanfits for masterdark for unique specid
-        
+            dframesselect = [d for d in dframes if d.specid == ucam] 
+            meandarkfits ( side, ucam, redux_dir, 'masterdark', meanfitsopts, dframesselect ) # meanfits for masterdark for unique specid
+    
     if normalize:
         print ('***************************************************')
         print ('* NORMALIZING CALIBRATION IMAGES BY EXPOSURE TIME *')
@@ -835,38 +834,37 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('**********************')
         print ('* BUILDING MASTERARC *')
         print ('**********************')
-        for uca in ucam:
-            if uca == '501':
-                LAMP_DICT = {0:'Hg',1:'Cd'}
-            if (uca == '502') or (uca == '503'):
-                LAMP_DICT = {0:'Hg',1:'FeAr'}
-            for side in SPECBIG:
-                for lamp in LAMP_DICT.values():
-                    lframesselect = [l for l in lframes if l.specid == uca and l.object == lamp]
-                    if len(lframesselect)>1:
-                        meanlampfits(side, uca, lamp, redux_dir, 'masterarc' , arcopts, lframesselect) 
-                    else:
-                        filename = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in lframesselect]
-                        mastername = op.join ( redux_dir , 'masterarc' + '_' + lamp + '_' + uca + '_' + side + '.fits')
-                        shutil.copy ( filename[0], mastername )
-                        efilename = [op.join ( f.origloc, 'e.' + f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in lframesselect]
-                        emastername = op.join ( redux_dir , 'e.masterarc' + '_' + lamp + '_' + uca + '_' + side + '.fits')
-                        shutil.copy ( efilename[0], emastername )
+        if ucam == '501':
+            LAMP_DICT = {0:'Hg',1:'Cd'}
+        if (ucam == '502') or (ucam == '503'):
+            LAMP_DICT = {0:'Hg',1:'FeAr'}
+        for side in SPECBIG:
+            for lamp in LAMP_DICT.values():
+                lframesselect = [l for l in lframes if l.specid == ucam and l.object == lamp]
+                if len(lframesselect)>1:
+                    meanlampfits(side, ucam, lamp, redux_dir, 'masterarc' , arcopts, lframesselect) 
+                else:
+                    filename = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in lframesselect]
+                    mastername = op.join ( redux_dir , 'masterarc' + '_' + lamp + '_' + ucam + '_' + side + '.fits')
+                    shutil.copy ( filename[0], mastername )
+                    efilename = [op.join ( f.origloc, 'e.' + f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in lframesselect]
+                    emastername = op.join ( redux_dir , 'e.masterarc' + '_' + lamp + '_' + ucam + '_' + side + '.fits')
+                    shutil.copy ( efilename[0], emastername )
 
-                if len ( LAMP_DICT.values() ) > 1:
-                    opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + uca + '_' + side + '.fits' ) )
-                    filename = op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[1] + '_' + uca + '_' + side + '.fits' )
-                    addfits ( filename, opt)
-                    shutil.copy( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + uca + '_' + side + '.fits' ), 
-                                 op.join ( redux_dir, 'masterarc' + '_' + uca + '_' + side + '.fits' ) )
-                    shutil.copy( op.join ( redux_dir, 'e.smasterarc' + '_' + LAMP_DICT[1] + '_' + uca + '_' + side + '.fits' ), 
-                                 op.join ( redux_dir, 'e.masterarc' + '_' + uca + '_' + side + '.fits' ) )
-                    os.remove  ( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + uca + '_' + side + '.fits' ) )
-                else: 
-                    shutil.copy( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + uca + '_' + side + '.fits' ), 
-                                 op.join ( redux_dir, 'masterarc' + '_' + uca + '_' + side + '.fits' ) )
-                    shutil.copy( op.join ( redux_dir, 'e.masterarc' + '_' + LAMP_DICT[0] + '_' + uca + '_' + side + '.fits' ), 
-                                 op.join ( redux_dir, 'e.masterarc' + '_' + uca + '_' + side + '.fits' ) )
+            if len ( LAMP_DICT.values() ) > 1:
+                opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ) )
+                filename = op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' )
+                addfits ( filename, opt)
+                shutil.copy( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
+                             op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+                shutil.copy( op.join ( redux_dir, 'e.smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
+                             op.join ( redux_dir, 'e.masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+                os.remove  ( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ) )
+            else: 
+                shutil.copy( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ), 
+                             op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+                shutil.copy( op.join ( redux_dir, 'e.masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ), 
+                             op.join ( redux_dir, 'e.masterarc' + '_' + ucam + '_' + side + '.fits' ) )
         for l in lframes:
             if l.clean:
                 for side in SPECBIG:
@@ -880,28 +878,28 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('************************')
         print ('* BUILDING MASTERTRACE *')
         print ('************************')
-        for uca in ucam:
-            if uca == '501':
-                FLT_LAMP = 'ldls'
-                LRS2_s = 'Blue'
-            if (uca == '502') or (uca == '503'):
-                FLT_LAMP = 'Qth'
-                LRS2_s = 'Red'
-            for side in SPECBIG:
-                if fframes[0].object.split('_')[0] != FLT_LAMP:
-                    print ('LRS2 '+LRS2_s+' requires '+FLT_LAMP+' flats: You choose '+fframes[0].object.split('_')[0]+' flats')
-                    print ('Please update config file: flt_folder should be folder containing '+FLT_LAMP+' flats')
-                    return None 
-                fframesselect = [f for f in fframes if f.specid == uca and f.object.split('_')[0] == FLT_LAMP] 
-                if len ( fframesselect ) > 1:
-                    meantracefits(side, uca, redux_dir, 'mastertrace', traceopts, fframesselect)
-                else:
-                    filename = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframesselect]
-                    mastername = op.join ( redux_dir , 'mastertrace' + '_' + uca + '_' + side + '.fits')
-                    shutil.copy ( filename[0], mastername )
-                    efilename = [op.join ( f.origloc, 'e.' + f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframesselect]
-                    emastername = op.join ( redux_dir , 'e.mastertrace' + '_' + uca + '_' + side + '.fits')
-                    shutil.copy ( efilename[0], emastername )
+
+        if ucam == '501':
+            FLT_LAMP = 'ldls'
+            LRS2_s = 'Blue'
+        if (ucam == '502') or (ucam == '503'):
+            FLT_LAMP = 'Qth'
+            LRS2_s = 'Red'
+        for side in SPECBIG:
+            if fframes[0].object.split('_')[0] != FLT_LAMP:
+                print ('LRS2 '+LRS2_s+' requires '+FLT_LAMP+' flats: You choose '+fframes[0].object.split('_')[0]+' flats')
+                print ('Please update config file: flt_folder should be folder containing '+FLT_LAMP+' flats')
+                return None 
+            fframesselect = [f for f in fframes if f.specid == ucam and f.object.split('_')[0] == FLT_LAMP] 
+            if len ( fframesselect ) > 1:
+                meantracefits(side, ucam, redux_dir, 'mastertrace', traceopts, fframesselect)
+            else:
+                filename = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframesselect]
+                mastername = op.join ( redux_dir , 'mastertrace' + '_' + ucam + '_' + side + '.fits')
+                shutil.copy ( filename[0], mastername )
+                efilename = [op.join ( f.origloc, 'e.' + f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframesselect]
+                emastername = op.join ( redux_dir , 'e.mastertrace' + '_' + ucam + '_' + side + '.fits')
+                shutil.copy ( efilename[0], emastername )
         for f in fframes:
             if f.clean:
                 for side in SPECBIG:
@@ -955,40 +953,38 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('*************************************************************************')
         print ('* RUNNING DEFORMER TO BUILD DISTORTION SOLUTION AND WAVELENGTH SOLUTION *')
         print ('*************************************************************************')
-        for uca in ucam:
-            for side in SPECBIG:  
-                #selects wavelength range and ref arc line for each channel
-                if (uca == '501') and (side == 'L'):
-                    wave_range = '[3700,4700]'
-                    ref_line = 6
-                if (uca == '501') and (side == 'R'):
-                    wave_range = '[4600,7000]'
-                    ref_line = 7
-                if (uca == '502') and (side == 'L'):
-                    wave_range = '[6500,8500]'
-                    ref_line = 3
-                if (uca == '502') and (side == 'R'):
-                    wave_range = '[8000,10500]'
-                    ref_line = 1
-                #copy the lines file used to this directory 
-                shutil.copy ( op.join(linesdir,'lines' + '_' + side + '_' + uca +'.par'), op.join(redux_dir,'lines' + '_' + side + '_' + uca +'.par' ) )
-                #build the names of the files given to deformer 
-                mastertrace = op.join ( redux_dir, 'mastertrace' + '_' + uca + '_' + side + '.fits' )
-                masterarc   = op.join ( redux_dir, 'masterarc' + '_' + uca + '_' + side + '.fits' )
-                linefile    = op.join ( redux_dir, 'lines' + '_' + side + '_' + uca +'.par' )
-                deformer ( mastertrace, masterarc, linefile, wave_range, ref_line, deformeropts)
+        for side in SPECBIG:  
+            #selects wavelength range and ref arc line for each channel
+            if (ucam == '501') and (side == 'L'):
+                wave_range = '[3700,4700]'
+                ref_line = 6
+            if (ucam == '501') and (side == 'R'):
+                wave_range = '[4600,7000]'
+                ref_line = 7
+            if (ucam == '502') and (side == 'L'):
+                wave_range = '[6500,8500]'
+                ref_line = 3
+            if (ucam == '502') and (side == 'R'):
+                wave_range = '[8000,10500]'
+                ref_line = 1
+            #copy the lines file used to this directory 
+            shutil.copy ( op.join(linesdir,'lines' + '_' + side + '_' + ucam +'.par'), op.join(redux_dir,'lines' + '_' + side + '_' + ucam +'.par' ) )
+            #build the names of the files given to deformer 
+            mastertrace = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fits' )
+            masterarc   = op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' )
+            linefile    = op.join ( redux_dir, 'lines' + '_' + side + '_' + ucam +'.par' )
+            deformer ( mastertrace, masterarc, linefile, wave_range, ref_line, deformeropts)
     
     # Run sky subtraction            
     if subsky:  
         print ('************************************************')
         print ('* PERFORMING SKY SUBTRACTION ON SCIENCE FRAMES *')
         print ('************************************************')
-        for uca in ucam:
-            for side in SPECBIG:
-                distmodel = op.join ( redux_dir, 'mastertrace' + '_' + uca + '_' + side + '.dist' )
-                fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + uca + '_' + side + '.fmod' )
-                sframesselect = [s for s in sframes if s.specid == uca]
-                subtractsky(sframesselect,side,distmodel,fibermodel,subskyopts)
+        for side in SPECBIG:
+            distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
+            fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
+            sframesselect = [s for s in sframes if s.specid == ucam]
+            subtractsky(sframesselect,side,distmodel,fibermodel,subskyopts)
 
     # Run fiberextract
     if fiberextract:  
@@ -1007,38 +1003,36 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             print ('    ++++++++++++++++++++++++++')
             print ('     Resampling in Wavelength ')
             print ('    ++++++++++++++++++++++++++')
-            for uca in ucam:
-                for side in SPECBIG:
-                    #for each channel selects correct wavlength range and dw
-                    if (uca == '501') and (side == 'L'):
-                        wave_range = '3643,4668'
-                        dw = '0.496'
-                    if (uca == '501') and (side == 'R'):
-                        wave_range = '4600,7000'
-                        dw = '1.2'
-                    if (uca == '502') and (side == 'L'):
-                        wave_range = '6432,8451'
-                        dw = '0.978'
-                    if (uca == '502') and (side == 'R'):
-                        wave_range = '8324,10565'
-                        dw = '1.129'
+            for side in SPECBIG:
+                #for each channel selects correct wavlength range and dw
+                if (ucam == '501') and (side == 'L'):
+                    wave_range = '3643,4668'
+                    dw = '0.496'
+                if (ucam == '501') and (side == 'R'):
+                    wave_range = '4600,7000'
+                    dw = '1.2'
+                if (ucam == '502') and (side == 'L'):
+                    wave_range = '6432,8451'
+                    dw = '0.978'
+                if (ucam == '502') and (side == 'R'):
+                    wave_range = '8324,10565'
+                    dw = '1.129'
 
-                    sframesselect = [s for s in sframes if s.specid == uca]
+                sframesselect = [s for s in sframes if s.specid == ucam]
 
-                    distmodel = redux_dir + "/mastertrace_" + uca + "_" + side + ".dist"
-                    fibermodel = redux_dir + "/mastertrace_" + uca + "_" + side + ".fmod"
-                    fibextract_Resample(sframesselect,base,side,distmodel,fibermodel,wave_range,dw,use_ap_corr,fibextractopts) 
+                distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
+                fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
+                fibextract_Resample(sframesselect,base,side,distmodel,fibermodel,wave_range,dw,use_ap_corr,fibextractopts) 
         else:
             print ('    +++++++++++++++++++++++++++++++')
             print ('     Extraction Without Resampling ')
             print ('    +++++++++++++++++++++++++++++++')
-            for uca in ucam:
-                for side in SPECBIG:   
-                    sframesselect = [s for s in sframes if s.specid == uca]
+            for side in SPECBIG:   
+                sframesselect = [s for s in sframes if s.specid == ucam]
 
-                    distmodel = redux_dir + "/mastertrace_" + uca + "_" + side + ".dist"
-                    fibermodel = redux_dir + "/mastertrace_" + uca + "_" + side + ".fmod"
-                    fibextract(sframesselect,base,side,distmodel,fibermodel,use_ap_corr,fibextractopts)
+                distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
+                fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
+                fibextract(sframesselect,base,side,distmodel,fibermodel,use_ap_corr,fibextractopts)
 
     #CURE saves these files from deformer outside of the redux directory for some reason.
     #This moves them inside of the redux directory.
@@ -1076,7 +1070,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             ditherfile = 'dither_LRS2_' + side + '.txt'
 
             #choose correct mapping file for the channel you are using
-            if (uca == 501) and (side == 'L'):
+            if  (uca == 501) and (side == 'L'):
                 IFUfile = mapdir+'LRS2_B_UV_mapping.txt'
             elif (uca == 501) and (side == 'R'):
                 IFUfile = mapdir+'LRS2_B_OR_mapping.txt'
