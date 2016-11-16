@@ -35,13 +35,11 @@ from lrs2_config import *
 
 #specifying spec ID to look for in headers based on LRS2 unit to reduce 
 if LRS2_spec == 'B':
-    ucam        = ["501"]
     redux_dir   = redux_dir+'_B'
     print ('#########################################')
     print ('## RUNNING DATA REDUCTION ON LRS2-BLUE ##')
     print ('#########################################')
 elif LRS2_spec == 'R':
-    ucam        = ["502"]
     redux_dir   = redux_dir+'_R'
     print ('########################################')
     print ('## RUNNING DATA REDUCTION ON LRS2-RED ##')
@@ -49,16 +47,27 @@ elif LRS2_spec == 'R':
 else:
     sys.exit('You need to choose either R or B for LRS2_spec')
 
-###################
-# Setting CUREBIN #
-###################
+##########################################
+# Setting CUREBIN and check LRS2 defined #
+##########################################
 
+#setting CUREBIN
 CUREBIN = None
 if not CUREBIN:
     CUREBIN = environ.get('CUREBIN')
 if not CUREBIN:
     print("Please set CUREBIN as  environment variable or in the script")
     sys.exit(1)
+
+#checking that LRS2 is defined in specconf.h 
+cureversion = os.popen(op.join(CUREBIN, 'cureversion')).readlines()
+spec_define = cureversion[4].split(' ')[1]
+instrument = spec_define.rstrip('\n')
+
+if instrument == 'LRS2':
+    print ('CURE is set for LRS2 reduction')
+else: 
+    sys.exit('You need to update specconf.h in CURE to define LRS2')
 
 ###################################
 # Defining which functions to run #
@@ -173,7 +182,12 @@ DIR_DICT     = {    0:zro_dir,    1:drk_dir,    2:cmp_dir,    3:flt_dir,    4:sc
 
 #Detector Amps and spectrograph side lists 
 SPEC = ["LL","LU","RL","RU"]
-SPECBIG = ["L","R"]  
+SPECBIG = ["L","R"]
+
+if LRS2_spec == 'R':
+    CHANBIG = ["NR","FR"]  
+if LRS2_spec == 'B':
+    CHANBIG = ["UV","OR"] 
 
 #############################
 # Define config directories #
@@ -283,7 +297,6 @@ class ditherinfo(object):
         """
         s = []
         s.append("# basename is the base file name of the data files.")
-        s.append("#          _{L,R}.fits is added for the left and right spectrographs")
         s.append("# modelbase is the base file name of the dist, fmod, pmode files corresponding to the data files")
         s.append("# $Id:$")
         s.append("#")
@@ -711,6 +724,20 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
     fframes = [v for v in vframes if v.type == "flt"] # gives just "flt" frames
     sframes = [v for v in vframes if v.type == "sci"] # gives just "sci" frames
 
+    #Define ucam - this is the specid of the data frames
+    # this will be 501 for Red
+    # for Blue it is 502 for data taken before 11/16/2016 but 503 if taken after
+    if LRS2_spec == "L":
+        ucam = ["501"]
+    if LRS2_spec == "R":
+        old = [ o for o in oframes if o.specid == '502' ]
+        new = [ o for o in oframes if o.specid == '503' ]
+        if len(old) > 0:
+            ucam = ["502"]
+        elif len(new) > 0:
+            ucam = ["503"]
+        else:
+            sys.exit('You do not have LRS2 data')
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
@@ -811,7 +838,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         for uca in ucam:
             if uca == '501':
                 LAMP_DICT = {0:'Hg',1:'Cd'}
-            if uca == '502':
+            if (uca == '502') or (uca == '503'):
                 LAMP_DICT = {0:'Hg',1:'FeAr'}
             for side in SPECBIG:
                 for lamp in LAMP_DICT.values():
@@ -857,7 +884,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             if uca == '501':
                 FLT_LAMP = 'ldls'
                 LRS2_s = 'Blue'
-            if uca == '502':
+            if (uca == '502') or (uca == '503'):
                 FLT_LAMP = 'Qth'
                 LRS2_s = 'Red'
             for side in SPECBIG:
@@ -904,7 +931,6 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
 
         #fix far-red channel masterarc
 
-
     #Extend traces to detector edges for the orange channel. 
     #This will create a new mastertrace_501_R.fits and save the old one as mastertrace_501_R_orig.fits
     if fix_chan and (LRS2_spec == 'B'):
@@ -929,8 +955,6 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('*************************************************************************')
         print ('* RUNNING DEFORMER TO BUILD DISTORTION SOLUTION AND WAVELENGTH SOLUTION *')
         print ('*************************************************************************')
-        #shutil.copy ( 'lines_L.par', op.join(redux_dir,'lines_L.par' ) )
-        #shutil.copy ( 'lines_R.par', op.join(redux_dir,'lines_R.par' ) )
         for uca in ucam:
             for side in SPECBIG:  
                 #selects wavelength range and ref arc line for each channel
@@ -946,7 +970,9 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
                 if (uca == '502') and (side == 'R'):
                     wave_range = '[8000,10500]'
                     ref_line = 1
+                #copy the lines file used to this directory 
                 shutil.copy ( op.join(linesdir,'lines' + '_' + side + '_' + uca +'.par'), op.join(redux_dir,'lines' + '_' + side + '_' + uca +'.par' ) )
+                #build the names of the files given to deformer 
                 mastertrace = op.join ( redux_dir, 'mastertrace' + '_' + uca + '_' + side + '.fits' )
                 masterarc   = op.join ( redux_dir, 'masterarc' + '_' + uca + '_' + side + '.fits' )
                 linefile    = op.join ( redux_dir, 'lines' + '_' + side + '_' + uca +'.par' )
@@ -1039,8 +1065,6 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         if len(Fefiles) == 0:
             Fefiles = glob.glob("Fe*_sci_*.fits")
 
-        ditherfile = 'dither_LRS2.txt'
-
         for f in Fefiles:
             im  = pyfits.open(f)
             hdr = im[0].header
@@ -1049,36 +1073,27 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             side    = hdr['CCDPOS']
             airmass = hdr['AIRMASS']
 
+            ditherfile = 'dither_LRS2_' + side + '.txt'
+
             #choose correct mapping file for the channel you are using
             if (uca == 501) and (side == 'L'):
                 IFUfile = mapdir+'LRS2_B_UV_mapping.txt'
             elif (uca == 501) and (side == 'R'):
                 IFUfile = mapdir+'LRS2_B_OR_mapping.txt'
-
-                #fix becuase deformer won't run on blue channel but need both sides for mkcube 
-                if os.path.isfile(f[0:-7]+'_L.fits') == False:
-                    shutil.copy(f,f[0:-7]+'_L.fits')
-                    shutil.copy('e.'+f,'e.'+f[0:-7]+'_L.fits')
-
             elif (uca == 502) and (side == 'L'):
                 IFUfile = mapdir+'LRS2_R_NR_mapping.txt'
             elif (uca == 502) and (side == 'R'):
                 IFUfile = mapdir+'LRS2_R_FR_mapping.txt'
 
             psf      = 1.5
-            basename = f[2:-7]
-            outname  = f[0:-5]
+            basename = f[2:-7] + '_' + side 
+            outname  = f[0:-5] 
 
             ditherf = open(ditherfile, 'w')
             ditherinfo.writeHeader(ditherf)
-            ditherinfo.writeDither(ditherf,basename,"../mastertrace_"+str(uca),0.0,0.0,psf,1.00,airmass)
+            ditherinfo.writeDither(ditherf,basename,"../mastertrace_"+str(uca)+'_'+side, 0.0, 0.0, psf, 1.00, airmass)
 
             mkcube(IFUfile,ditherfile,outname,cubeopts)  
-
-            #fix becuase deformer won't run on blue channel but need both sides for mkcube
-            if (uca == 501) and (side == 'R'):
-                 os.remove(f[0:-7]+'_L.fits') 
-                 os.remove('e.'+f[0:-7]+'_L.fits')  
 
     return vframes
     
