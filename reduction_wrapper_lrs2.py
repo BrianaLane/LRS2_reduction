@@ -2,7 +2,8 @@
 """
 Created on Friday April  8 02:10:02 2016
 
-This is a work in progress ... 
+Reduces LRS2 data for either the blue or red channels
+This script reads user parameters from lrs2_config.py 
 
 @author: gregz, brianaindahl
 """
@@ -47,17 +48,16 @@ elif LRS2_spec == 'R':
 else:
     sys.exit('You need to choose either R or B for LRS2_spec')
 
-##########################################
-# Setting CUREBIN and check LRS2 defined #
-##########################################
+##################################################
+# Setting CUREBIN and check LRS2 defined in CURE #
+##################################################
 
 #setting CUREBIN
 CUREBIN = None
 if not CUREBIN:
     CUREBIN = environ.get('CUREBIN')
 if not CUREBIN:
-    print("Please set CUREBIN as  environment variable or in the script")
-    sys.exit(1)
+    sys.exit("Please set CUREBIN as environment variable")
 
 #checking that LRS2 is defined in specconf.h 
 cureversion = os.popen(op.join(CUREBIN, 'cureversion')).readlines()
@@ -73,13 +73,22 @@ else:
 # Defining which functions to run #
 ###################################
 
+#dark folder does not get used if there are not darks
+#if there are no darks it sets drk_folder to zro_folder for the script to run.
+#nothing is done with these fake dark files
+if len(drk_folder) == 0:
+    ifdarks = False
+    drk_folder = zro_folder
+else: 
+    ifdarks == True
+
 #if basic reduction is run need to specify specific routines to run 
 # divide pixel flat and masterdark are not being used now
 if basic:
     fix_chan        = True
-    dividepf        = False
-    normalize       = False 
-    masterdark      = True
+    dividepf        = dividePixFlt
+    normalize       = False
+    masterdark      = ifdarks
     masterarc       = True  
     mastertrace     = True 
 else:
@@ -89,7 +98,6 @@ else:
     masterdark      = False
     masterarc       = False  
     mastertrace     = False
-    fixorange       = False
 
 # This makes sure that the redux folder is only overwritten if the user chooses to run basic reduction
 # If you user only wants to run deformer, skysubtract, fiberextract, or mkcube it used the data in redux 
@@ -100,8 +108,7 @@ else:
     all_copy = False
     RESTART_FROM_SCRATCH = False
 
-#residual parameters from that do not need to be changed for automated use 
-usemapping       = False # if headers are messed up, manual map IFUSLOT to SPECID 
+#sets the initial action base to start with. CURE adds bases to data when a change is made 
 initial_base     = ''
 
 ########################
@@ -117,19 +124,11 @@ traceopts       = "--maxmem 1024 -s -t -m -k 2.8"
 deformeropts    = "-p 7 -n 4 -C 10 --debug --dump_psf_data"
 subskyopts      = "-J --output-both -w "+str(window_size)+" -k "+str(sky_kappa[0])+','+str(sky_kappa[1])+" -m "+str(smoothing)+" -T "+str(sn_thresh)
 fibextractopts  = "-P"
-if diffAtmRef:
-    cubeopts        = "-a "+str(sky_sampling)+" -k "+str(max_distance)+" -s "+str(cube_sigma)+" -d "
-else:
-    cubeopts        = "-a "+str(sky_sampling)+" -k "+str(max_distance)+" -s "+str(cube_sigma)
-
-use_ap_corr = False
+cubeopts        = "-a "+str(sky_sampling)+" -k "+str(max_distance)+" -s "+str(cube_sigma)
 
 #########################
 # Defining data folders #
 #########################
-
-#dark folder does not get used but this is done because dark folder needs a filler for the script to run
-drk_folder = zro_folder 
 
 #reads folder names from config file
 zro_file_loc = []
@@ -183,11 +182,6 @@ DIR_DICT     = {    0:zro_dir,    1:drk_dir,    2:cmp_dir,    3:flt_dir,    4:sc
 #Detector Amps and spectrograph side lists 
 SPEC = ["LL","LU","RL","RU"]
 SPECBIG = ["L","R"]
-
-if LRS2_spec == 'R':
-    CHANBIG = ["NR","FR"]  
-if LRS2_spec == 'B':
-    CHANBIG = ["UV","OR"] 
 
 #############################
 # Define config directories #
@@ -244,12 +238,7 @@ class VirusFrame:
             self.actionbase["L"] = initial_base  
             self.actionbase["R"] = initial_base  
             
-            # Use mapping because headers are messed up
-            if usemapping:
-                self.specid      = IFUSLOT_DICT[ self.ifuslot ]
-            else:
-                self.specid      = str(hdulist[0].header['SPECID'])
-                
+            self.specid      = str(hdulist[0].header['SPECID']) 
             self.orggain     = hdulist[0].header['GAIN']
             self.orgrdnoise  = hdulist[0].header['RDNOISE']
             self.exptime     = hdulist[0].header['EXPTIME']
@@ -570,43 +559,39 @@ def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
     return command
     
     
-def fibextract_Resample(frames,base,side,distmodel,fibermodel,wave_range,dw,use_ap_corr,opts):
+def fibextract_Resample(frames,base,side,distmodel,fibermodel,wave_range,dw,opts):
 
     filenames = [(redux_dir + '/' + sci_dir + '/' + base + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in frames]
 
-    if use_ap_corr:
-        ap_corr = '-c'
-    else:
-        ap_corr = ''
-
     for f in filenames:
     
-        command = 'fiberextract %s %s -p FeR -W %s -w %s -d %s -f %s %s' %(opts,ap_corr,wave_range,dw,distmodel,fibermodel,f)
+        command = 'fiberextract %s -p FeR -W %s -w %s -d %s -f %s %s' %(opts,wave_range,dw,distmodel,fibermodel,f)
         
         run_cure_command( command, 0 )
 
     return command
 
-def fibextract(frames,base,side,distmodel,fibermodel,use_ap_corr,opts):
+def fibextract(frames,base,side,distmodel,fibermodel,opts):
 
     filenames = [(redux_dir + '/' + sci_dir + '/' + base + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in frames]
 
-    if use_ap_corr:
-        ap_corr = '-c'
-    else:
-        ap_corr = ''
-
     for f in filenames:
     
-        command = 'fiberextract %s %s -x -d %s -f %s %s' %(opts,ap_corr,distmodel,fibermodel,f)
+        command = 'fiberextract %s -x -d %s -f %s %s' %(opts,distmodel,fibermodel,f)
         
         run_cure_command( command, 0 )
 
     return command
 
-def mkcube(ifufile,ditherfile,outname,opts):
+def mkcube(ifufile,ditherfile,outname,diffatmref,opts):
+
+    #the default for the DAR correction on CURE is True so adding -d turns off DAR correction
+    if diffatmref:
+        dar = ""
+    else:
+        dar = "-d"
     
-    command = 'mkcube %s -o %s -i %s %s' %(opts,outname,ifufile,ditherfile)
+    command = 'mkcube %s %s -o %s -i %s %s' %(opts,dar,outname,ifufile,ditherfile)
         
     run_cure_command( command, 0 )
 
@@ -728,7 +713,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
     #Define ucam - this is the specid of the data frames
     # this will be 501 for Red
     # for Blue it is 502 for data taken before 11/16/2016 but 503 if taken after
-    if LRS2_spec == "L":
+    if LRS2_spec == "B":
         ucam = "501"
     if LRS2_spec == "R":
         old = [ o for o in oframes if o.specid == '502' ]
@@ -808,9 +793,9 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
     
     # Create Master Dark Frames
     if masterdark:
-        print ('***********************')
-        print ('* BUILDING MASTERDARK *')
-        print ('***********************')
+        print ('**************************************')
+        print ('* BUILDING MASTERDARK FOR SCI FRAMES *')
+        print ('**************************************')
         for side in SPECBIG:
             dframesselect = [d for d in dframes if d.specid == ucam] 
             meandarkfits ( side, ucam, redux_dir, 'masterdark', meanfitsopts, dframesselect ) # meanfits for masterdark for unique specid
@@ -1022,7 +1007,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
 
                 distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
-                fibextract_Resample(sframesselect,base,side,distmodel,fibermodel,wave_range,dw,use_ap_corr,fibextractopts) 
+                fibextract_Resample(sframesselect,base,side,distmodel,fibermodel,wave_range,dw,fibextractopts) 
         else:
             print ('    +++++++++++++++++++++++++++++++')
             print ('     Extraction Without Resampling ')
@@ -1032,7 +1017,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
 
                 distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
-                fibextract(sframesselect,base,side,distmodel,fibermodel,use_ap_corr,fibextractopts)
+                fibextract(sframesselect,base,side,distmodel,fibermodel,fibextractopts)
 
     #CURE saves these files from deformer outside of the redux directory for some reason.
     #This moves them inside of the redux directory.
@@ -1058,6 +1043,9 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         #if not checks for any type of fiber extracted files (resampled or not)
         if len(Fefiles) == 0:
             Fefiles = glob.glob("Fe*_sci_*.fits")
+
+        if len(Fefiles) == 0:
+            sys.exit("No fiber extracted files found - You must run fiberextract before building data cube")
 
         for f in Fefiles:
             im  = pyfits.open(f)
@@ -1087,7 +1075,14 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             ditherinfo.writeHeader(ditherf)
             ditherinfo.writeDither(ditherf,basename,"../mastertrace_"+str(uca)+'_'+side, 0.0, 0.0, psf, 1.00, airmass)
 
-            mkcube(IFUfile,ditherfile,outname,cubeopts)  
+            mkcube(IFUfile,ditherfile,outname,diffAtmRef,cubeopts) 
+
+    #Run mkcube
+    if collapseCube:
+        print ('***************************************')
+        print ('* COLLAPSING DATA CUBE TO BUILD IMAGE *')
+        print ('***************************************') 
+        Cufiles = glob.glob("Cu*_sci_*.fits")
 
     return vframes
     
