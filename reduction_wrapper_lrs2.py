@@ -23,6 +23,7 @@ import os.path as op
 from os import environ
 import re
 import string
+import cosmics 
 from lrs2_config import * 
 
 #blu 370-470nm
@@ -85,6 +86,7 @@ else:
 #if basic reduction is run need to specify specific routines to run 
 # divide pixel flat and masterdark are not being used now
 if basic:
+    rmcosmics       = rmCosmics 
     fix_chan        = True
     dividepf        = dividePixFlt
     normalize       = False
@@ -92,6 +94,7 @@ if basic:
     masterarc       = True  
     mastertrace     = True 
 else:
+    rmcosmics       = False
     fix_chan        = False
     dividepf        = False
     normalize       = False  
@@ -426,6 +429,33 @@ def extractfits(trimsec, frames, amp):
     [f.addbase ('e',amp=amp) for f in frames] 
     
     return command
+
+def rmcosmicfits(frames, amp):
+
+    filenames = [op.join ( f.origloc, f.actionbase[amp] + f.basename + '_' + f.ifuslot + amp + '_' + f.type + '.fits') for f in frames]
+    
+    for i in xrange(len(filenames)):
+
+        array, header = cosmics.fromfits(filenames[i])
+        # array is a 2D numpy array
+
+        im_gain = header['GAIN']
+        im_RN = header['RDNOISE']
+
+        # Build the object :
+        c = cosmics.cosmicsimage(array, gain=im_gain, readnoise=im_RN, sigclip = 5.0, sigfrac = 0.3, objlim = 7.0)
+        # There are other options, check the manual...
+
+        # Run the full artillery :
+        c.run(maxiter = 4)
+
+        # Write the cleaned image into a new FITS file, conserving the original header :
+        cosmics.tofits(filenames[i], c.cleanarray, header)
+
+        # If you want the mask, here it is :
+        #cosmics.tofits("s20160909T093737.7_066LL_sci_mask.fits", c.mask, header)
+    
+    return 'done'
     
     
 def ccdcombine(frames):
@@ -725,6 +755,10 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         else:
             sys.exit('You do not have LRS2 data')
 
+    print ('*****************************')
+    print ('* CHECKING CALIBRATION DATA *')
+    print ('*****************************')
+
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
     if os.path.isfile(redux_dir+'/lrs2_config_'+redux_dir+'_copy.py') == True:
@@ -750,6 +784,11 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             print ('* EXTRACT DATA REGION FOR '+sp+' *')
             print ('*****************************')
             extractfits ( trimsec, vframes, sp )       # for all frames
+            if rmcosmics:
+                print ('**********************************************')
+                print ('* REMOVE COSMIC RAYS (SCI IMAGES) FOR '+sp+' *')
+                print ('**********************************************')
+                rmcosmicfits ( sframes, sp )       # for sci frames - because this is slow
             
 
             vframesselect  = [v for v in vframes if v.type == "zro" and v.specid == ucam] 
