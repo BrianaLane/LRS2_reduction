@@ -10,15 +10,15 @@
 #LRS2-Red contains the red (650-842nm) and far-red (818-1050nm) channels (R)
 LRS2_spec    	= 'R' 		#choose R or B only 
 
-redux_dir       = "shela_CL2278A"	 	#name of the folder reduction is run - folder created by script
-date_folder     = "20160909"				#date folder containing raw data 
+redux_dir       = "SN_IPTFxx_W"	 	#name of the folder reduction is run - folder created by script
+date_folder     = "20160506"				#date folder containing raw data 
 
-zro_folder      = ["lrs20000007",]		#[need]   folders containing raw bias images 
+zro_folder      = ["lrs20000012",]		#[need]   folders containing raw bias images 
 drk_folder		= []					#[opt]    folders containing darks for science frames
-Hg_folder       = ["lrs20000002",]		#[need]   folders containing raw Hg arc lamp images 
-Cd_folder       = ["lrs20000003",]		#[only-B] folders containing raw Cd arc lamp images 
+Hg_folder       = ["lrs20009990",]		#[need]   folders containing raw Hg arc lamp images 
+Cd_folder       = []					#[only-B] folders containing raw Cd arc lamp images 
 FeAr_folder     = ["lrs20007999",]		#[only-R] folders containing raw FeAr arc lamp images
-flt_folder      = ["lrs20009920",]		#[need]   folders containing raw flat images (LRS2-R use Qth) (LRS2-B use LDLS)
+flt_folder      = ["lrs20000009",]		#[need]   folders containing raw flat images (LRS2-R use Qth) (LRS2-B use LDLS)
 sci_folder      = ["lrs20000014",]		#[need]   folders containing the science observations for that night 
 
 configdir       = "/Users/Briana/Documents/Grad_School/LRS2/LRS2_reduction/lrs2_config"	#path to lrs2_config folder
@@ -27,7 +27,7 @@ basic           = True		#run basic reduction (normalize, build mastertrace and m
 run_deformer    = True		#run deformer to map spectral traces and build wavelength solution for fiber extraction
 subsky          = True		#run sky subtraction on sci images - Need to have run deformer, only runs on non-extracted spectra
 fiberextract    = True	 	#extract spectra and save into fits file - Need to have run deformer
-makecube 		= True		#builds data cube out of fiber extracted image - Need to have run fiberextract
+makecube 		= False		#builds data cube out of fiber extracted image - Need to have run fiberextract
 collapseCube 	= False		#collapse data cube to make an image of a wavelength range of the users choice
 
 CLEAN_AFTER_DONE = True 	#If true it will delete intermediate reduction files for the calibration data
@@ -36,7 +36,7 @@ CLEAN_AFTER_DONE = True 	#If true it will delete intermediate reduction files fo
 # basic opts #
 ##############
 dividePixFlt 	= False			#[True/False] If True images will be divided by pixel flats (default: False)
-rmCosmics	 	= True 			#[True/False] If True the program LAcosmics is used to eliminate cosmic rays (default: True)
+rmCosmics	 	= True  		#[True/False] If True the program LAcosmics is used to eliminate cosmic rays (default: True)
 
 ########################
 # sky subtraction opts #
