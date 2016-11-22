@@ -251,11 +251,10 @@ class VirusFrame:
             self.exptime     = hdulist[0].header['EXPTIME']
             self.object      = hdulist[0].header['OBJECT'].split('_')[0]
 
-            if self.type != 'sci':
-                if len(hdulist[0].header['OBJECT'].split('_')) > 1:
-                    self.cal_side = hdulist[0].header['OBJECT'].split('_')[1]
-                else:
-                    self.cal_side = None
+            if len(hdulist[0].header['OBJECT'].split('_')) > 1:
+                self.cal_side = hdulist[0].header['OBJECT'].split('_')[1]
+            else:
+                self.cal_side = None
 
     def addbase(self, action, amp = None, side = None):
         if self.clean:
@@ -825,13 +824,14 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             ucam = "503"
 
     #from the vframes makes lists of files vframes according to type and specid (ucam)
-    tframes = [v for v in vframes if v.specid == ucam] 
-    oframes = [v for v in vframes if v.type != "zro" and v.specid == ucam] # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
-    dframes = [v for v in vframes if v.type == "drk" and v.specid == ucam] # gives dark frames
-    cframes = [v for v in vframes if (v.type == "flt" or v.type == "cmp") and v.specid == ucam] # gives "flt" and "cmp" frames
-    lframes = [v for v in vframes if v.type == "cmp" and v.specid == ucam] # gives just "cmp" frames
-    fframes = [v for v in vframes if v.type == "flt" and v.specid == ucam] # gives just "flt" frames
-    sframes = [v for v in vframes if v.type == "sci" and v.specid == ucam] # gives just "sci" frames
+    tframes = [v for v in vframes if (v.specid == ucam) and (v.cal_side == None or v.cal_side == LRS2_spec)] # gives all frames 
+    oframes = [t for t in tframes if v.type != "zro" ] # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
+    dframes = [t for t in tframes if v.type == "drk" ] # gives dark frames
+    cframes = [t for t in tframes if (v.type == "flt" or v.type == "cmp") ] # gives "flt" and "cmp" frames
+    lframes = [t for t in tframes if v.type == "cmp" ] # gives just "cmp" frames
+    fframes = [t for t in tframes if v.type == "flt" ] # gives just "flt" frames
+    sframes = [t for t in tframes if v.type == "sci" ] # gives just "sci" frames
+    zframes = [t for t in tframes if v.type == "zro" ] # gives just "zro" frames
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
@@ -861,10 +861,15 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             extractfits ( trimsec, tframes, sp )       # for all frames
 
             if rmcosmics:
-                print ('**********************************************')
+                print ('******************************************')
                 print ('* REMOVE COSMIC RAYS (SCI IMAGES) FOR '+sp+' *')
-                print ('**********************************************')
-                rmcosmicfits ( sframes, sp )       # for sci frames - because this is slow
+                print ('******************************************')
+                #if reducing old LRS2-Blue data: do not run rmcosmics on UV data(LL+LU), only orange(RL+RU)
+                if (LRS2_spec == 'B') and (first_run):
+                    if (sp == 'RL') or (sp == 'RU'):
+                        rmcosmicfits ( sframes, sp )       # for sci frames - because this is slow
+                else:
+                    rmcosmicfits ( sframes, sp )       # for sci frames - because this is slow                    
             
             print ('**************************')
             print ('* BUILD MASTERBIAS FOR '+sp+' *')
@@ -1233,7 +1238,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
 
         #track number of cubes used in order to inform user if their values fall out of bounds and no images made
         num_cubes = 0
-        
+
         min_wave_set = []
         max_wave_set = []
         #iterate through cube files 
@@ -1300,7 +1305,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         #if num_cubes is 0: all cubes out of wavelength range of users choice 
         if num_cubes == 0:
             print ("Wavelength range you choose for collapse cube is out of range")
-            sys.exit("This LRS2-"+LRS2_spec+" data set ranges between: "+str(np.amin(min_wave_set))+" and "+str(np.amax(max_wave_set))+" Angstroms")
+            sys.exit("This LRS2-"+LRS2_spec+" data set ranges between "+str(np.amin(min_wave_set))+" and "+str(np.amax(max_wave_set))+" Angstroms")
 
     return vframes
     
