@@ -23,12 +23,12 @@ sci_folder      = ["lrs20000014",]		#[need]   folders containing the science obs
 
 configdir       = "/Users/Briana/Documents/Grad_School/LRS2/LRS2_reduction/lrs2_config"	#path to lrs2_config folder
 
-basic           = True		#run basic reduction (normalize, build mastertrace and masterarc)
-run_deformer    = True		#run deformer to map spectral traces and build wavelength solution for fiber extraction
-subsky          = True		#run sky subtraction on sci images - Need to have run deformer, only runs on non-extracted spectra
-fiberextract    = True	 	#extract spectra and save into fits file - Need to have run deformer
+basic           = False		#run basic reduction (overscan + bias subtract, ccd combine, build mastertrace + masterarc)
+run_deformer    = False		#run deformer to map spectral traces and build wavelength solution for fiber extraction
+subsky          = False		#run sky subtraction on sci images - Need to have run deformer, only runs on non-extracted spectra
+fiberextract    = False	 	#extract spectra and save into fits file - Need to have run deformer
 makecube 		= False		#builds data cube out of fiber extracted image - Need to have run fiberextract
-collapseCube 	= False		#collapse data cube to make an image of a wavelength range of the users choice
+collapseCube 	= True		#collapse data cube to make an image of a wavelength range of the users choice
 
 CLEAN_AFTER_DONE = True 	#If true it will delete intermediate reduction files for the calibration data
 
@@ -49,14 +49,14 @@ sn_thresh		= 15 			#[float] Minimum signal to noise to flag fiber as continuum a
 ######################
 # fiber extract opts #
 ######################
-wl_resample 	 = True 		#[True/False] If True it will resample in wavelength, Does not resample in wavelength if False 
+wl_resample 	 = True 		#[True/False] If True it will resample in wavelength, Does not resample in wavelength if False (default: True)
 
 ##################
 # make cube opts #
 ##################
-sky_sampling 	= 0.3 			#[float] Regridded sample size on sky in arcsec.
-max_distance	= 5.0 			#[float] Samples further away will haver weight=0 [arcsec]. 
-cube_sigma		= 0.75			#[float] Gaussian sigma of interpolation kernel [arcsec].
+sky_sampling 	= 0.3 			#[float] Regridded sample size on sky in arcsec. (default: 0.3)
+max_distance	= 5.0 			#[float] Samples further away will haver weight=0 [arcsec]. (default: 5.0)
+cube_sigma		= 0.75			#[float] Gaussian sigma of interpolation kernel [arcsec]. (default: 0.75)
 diffAtmRef		= True  		#[True/False] Differential atmospheric refraction correction applied if True.
 
 ######################

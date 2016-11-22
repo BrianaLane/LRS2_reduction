@@ -318,9 +318,9 @@ class ditherinfo(object):
         f.write("\n")
         f.flush()
 
-####################
-# Define Functions #
-####################
+#####################################################
+# Define For Running Data Reduction Steps Functions #
+#####################################################
 
 def run_cure_command(command, suppress_output=0, debug=1):
     '''
@@ -669,10 +669,13 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
     Running the initial setup which includes:
     1) Building a standard reduction folder structure
     2) Copying files from specified location into the structure
-    3) Creating class variable, VirusFrame, for each file which records
+    3) Checking header to determine if old data procedures are needed (pre LRS2-B swap)
+        a)If old LRS2-B sets ucam to old specid (501) else sets ucam to new specid (503)
+        b)If reducing old red channel data: copies long exposure Qth frames from lrs2_config to flt for far-red reduction
+    4) If reducing red channel data: copies long exposure FeAr frames to cmp for far-red reduction
+    5) Creating class variable, VirusFrame, for each file which records
     keywords for other functions as well as time of the observation and basename
     '''
-
     vframes = [] # will fill this list with VirusFrame class objects for each image
     if redux_dir is None:
         print ( "Please provide a reduction directory \"redux_dir\"." )
@@ -740,17 +743,16 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
                     else:
                         first_run = True
                         print ("You are running reduction on early LRS2_data")
-                        if LRS2_spec == "R":
-                            if all_copy:
-                                print ("Calibration data is not optimal - some reference flats and comps will be taken from lrs2_config")
-                                #if first_run (old data) and reducing Red - copies long Qth exposures from config file to flt directory
-                                longQth_files = glob.glob(configdir+'/FR_longCals/long_Qth'+fit_path)
-                                print ('Copying long exposure Qth flats for far-red channel reduction')
-                                for q in longQth_files:
-                                    shutil.copy ( q , op.join ( redux_dir, DIR_DICT[i] ) )
+                        if (LRS2_spec == "R") and (all_copy):
+                            print ("Calibration data is not optimal - some reference flats and comps will be taken from lrs2_config")
+                            #if first_run (old data) and reducing Red - copies long Qth exposures from config file to flt directory
+                            longQth_files = glob.glob(configdir+'/FR_longCals/long_Qth'+fit_path)
+                            print ('Copying long exposure Qth flats for far-red channel reduction')
+                            for q in longQth_files:
+                                shutil.copy ( q , op.join ( redux_dir, DIR_DICT[i] ) )
 
                 #If reducing Red data: copy long FeAr exposures to cmp directory for far-red reduction                
-                if (LRS2_spec == "R"):
+                if (LRS2_spec == "R") and (all_copy):
                     if (file_loc_dir[i] == cmp_file_loc) and (file_loc == file_loc_dir[i][0]):
                         longFeAr_files = glob.glob(configdir+'/FR_longCals/long_FeAr'+fit_path)
                         print ('Copying long exposure FeAr comps for far-red channel reduction')
@@ -787,17 +789,18 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
               normalize = False, masterdark = False, masterarc = False, mastertrace = False):
     '''
     Running the basic reduction which includes:
-    1) Overscan subtract zero frames
-    2) Trim zero frames
-    3) Create master bias frame
-    4) Create blank error frame with readnoise in it
-    5) Overscan subtract and trim cmp/flt/sci frames
-    6) Subtract master bias from cmp/flt/sci frames
-    7) ccdcombine frames which puts units in e-
-    8) add photon noise to combined frames
-    9) divide pixelflat from cmp/flt/sci frames
-    10) normalize cmps and flts 
-    11) combine cmps and flts into masterarc and mastertrac
+    1) Overscan subtract and trim all frames
+    2) Create blank error frame with readnoise in it
+    3) Remove cosmic rays from sci frames (user option)
+    4) Create master bias frame for each amp 
+    5) Subtract master bias from cmp/flt/sci frames
+    6) Create master dark for each amp make scaled frame for each sci exposure time (user option)
+    7) Subtract master dark from each science frame (user option)
+    8) Ccdcombine all frames which puts units in e-
+    9) Add photon noise to combined frames
+    10) Divide pixelflat from cmp/flt/sci frames (user option)
+    11) Normalize cmps and flts 
+    12) Combine cmps and flts into masterarc and mastertrace
     '''
 
     print ('*************************')
@@ -945,9 +948,12 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             LAMP_DICT = {0:'Hg',1:'FeAr'}
         for side in SPECBIG:
             for lamp in LAMP_DICT.values():
+                #Creates a masterarc frame for each arc lamp in LAMP_DICT
                 lframesselect = [l for l in lframes if l.specid == ucam and l.object == lamp]
+                #If more than one image for that lamp take median image 
                 if len(lframesselect)>1:
                     meanlampfits(side, ucam, lamp, redux_dir, 'masterarc' , arcopts, lframesselect) 
+                #If only one frame for the lamp make that frame the master frame for that lamp 
                 elif len(lframesselect) == 1:
                     filename = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in lframesselect]
                     mastername = op.join ( redux_dir , 'masterarc' + '_' + lamp + '_' + ucam + '_' + side + '.fits')
@@ -955,24 +961,22 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
                     efilename = [op.join ( f.origloc, 'e.' + f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in lframesselect]
                     emastername = op.join ( redux_dir , 'e.masterarc' + '_' + lamp + '_' + ucam + '_' + side + '.fits')
                     shutil.copy ( efilename[0], emastername )
+                #If there are zero frames found then the arc lamp information provided is wrong
                 else:
                     print ("You did not provide the correct arc lamp data")
-                    sys.exit( "For LRS2-"+LRS2_spec+" You must provide "+LAMP_DICT[0]+" and "+LAMP_DICT[1]+" data")
+                    sys.exit( "For LRS2-"+LRS2_spec+" You must provide "+lamp+" data")
 
-            if len ( LAMP_DICT.values() ) > 1:
-                opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ) )
-                filename = op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' )
-                addfits ( filename, opt)
-                shutil.copy( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
-                             op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' ) )
-                shutil.copy( op.join ( redux_dir, 'e.smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
-                             op.join ( redux_dir, 'e.masterarc' + '_' + ucam + '_' + side + '.fits' ) )
-                os.remove  ( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ) )
-            else: 
-                shutil.copy( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ), 
-                             op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' ) )
-                shutil.copy( op.join ( redux_dir, 'e.masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ), 
-                             op.join ( redux_dir, 'e.masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+            #Combine each arc master frame for each lamp in LAMP_DICT into one masterarc 
+            opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ) )
+            filename = op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' )
+            addfits ( filename, opt)
+            shutil.copy( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
+                         op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+            shutil.copy( op.join ( redux_dir, 'e.smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
+                         op.join ( redux_dir, 'e.masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+            os.remove  ( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ) )
+
+        #clean intermediate frames in cmp if clean
         for l in lframes:
             if l.clean:
                 for side in SPECBIG:
@@ -992,13 +996,17 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         if LRS2_spec == 'R':
             FLT_LAMP = 'Qth'
         for side in SPECBIG:
+            #Check that the proper flat lamp images were choosen for the spec being reduced 
             if fframes[0].object.split('_')[0] != FLT_LAMP:
                 print ('LRS2-'+LRS2_spec+' requires '+FLT_LAMP+' flats: You choose '+fframes[0].object.split('_')[0]+' flats')
                 print ('Please update config file: flt_folder should be folder containing '+FLT_LAMP+' flats')
                 return None 
+            #Build a list of flat frames matching the correct lamp
             fframesselect = [f for f in fframes if f.specid == ucam and f.object.split('_')[0] == FLT_LAMP] 
+            #If there is more than one frame take a median from of the ones provided for the mastertrace
             if len ( fframesselect ) > 1:
                 meantracefits(side, ucam, redux_dir, 'mastertrace', traceopts, fframesselect)
+            #If there was only one frame provided that frame becomes the mastertrace
             else:
                 filename = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframesselect]
                 mastername = op.join ( redux_dir , 'mastertrace' + '_' + ucam + '_' + side + '.fits')
@@ -1006,6 +1014,8 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
                 efilename = [op.join ( f.origloc, 'e.' + f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframesselect]
                 emastername = op.join ( redux_dir , 'e.mastertrace' + '_' + ucam + '_' + side + '.fits')
                 shutil.copy ( efilename[0], emastername )
+
+        #Clean intermediate frames in flt if clean        
         for f in fframes:
             if f.clean:
                 for side in SPECBIG:
@@ -1152,6 +1162,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('***********************')
         print ('* BUILDING DATA CUBES *')
         print ('***********************')
+        #cd inside of the science directory 
         location_prefix = redux_dir + "/" + sci_dir + "/" 
         os.chdir(location_prefix)
 
@@ -1192,58 +1203,104 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             basename = f[2:-7] + '_' + side 
             outname  = f[0:-5] 
 
+            #call writeDither to build the dither file needed for mkcube
             ditherf = open(ditherfile, 'w')
             ditherinfo.writeHeader(ditherf)
             ditherinfo.writeDither(ditherf,basename,"../mastertrace_"+str(uca)+'_'+side, 0.0, 0.0, psf, 1.00, airmass)
 
             mkcube(IFUfile,ditherfile,outname,diffAtmRef,cubeopts) 
 
-            os.chdir('../../')
+        #cd back into the reduction directory 
+        os.chdir('../../')
 
     #Run mkcube
     if collapseCube:
         print ('***************************************')
         print ('* COLLAPSING DATA CUBE TO BUILD IMAGE *')
         print ('***************************************')
+        #cd into the science directory 
         location_prefix = redux_dir + "/" + sci_dir + "/" 
-        os.chdir(location_prefix) 
-        Cufiles = glob.glob("Cu*_sci_*.fits")
+        Cufiles = glob.glob(location_prefix + "CuFeR*_sci_*.fits")
 
+        #makes sure there are actually data cubes made from wavelength resampled, fiber extracted data in the sci directory 
+        #If data cubes were made from fiber extracted fibers that do not wl resample they do not contain WCS info needed
+        if len(Cufiles) == 0:
+            sys.exit("You must build data cubes from wavelength resampled, fiber extracted data")
+
+        #user defined wavelength range to collapse cube 
+        low_wave  = col_wave_range[0]
+        high_wave = col_wave_range[1]
+
+        #track number of cubes used in order to inform user if their values fall out of bounds and no images made
+        num_cubes = 0
+        
+        min_wave_set = []
+        max_wave_set = []
+        #iterate through cube files 
         for c in Cufiles:
             im  = pyfits.open(c)
             hdr = im[0].header
             dat = im[0].data
 
-            lenZ = shape(dat)[0]
-            CRVAL = hdr['CRVAL1']                                        
-            CDELT = hdr['CDELT1']
+            #read header for wavelength solution information
+            lenZ  = np.shape(dat)[0]
+            CRVAL = hdr['CRVAL3']                                        
+            CDELT = hdr['CDELT3']
             Side  = hdr['CCDPOS']
-            if Side == "R":
-                spec_chan = ''
+
+            #Find the name of the channel for this data cube
+            if   (LRS2_spec == 'B') and (Side == 'L'):
+                spec_chan = 'UV'
+            elif (LRS2_spec == 'B') and (Side == 'R'):
+                spec_chan = 'orange'
+            elif (LRS2_spec == 'R') and (Side == 'L'):
+                spec_chan = 'red'
+            elif (LRS2_spec == 'R') and (Side == 'R'):
+                spec_chan = 'far-red'
+
+            #build wavelength solution and find min and max wavelength of that solution
             wave_sol = np.add(np.arange(0,(lenZ*CDELT)+1,CDELT),CRVAL)
-            max_wave = amax(wave_sol)
-            min_wave = amin(wave_sol)
+            max_wave = np.amax(wave_sol)
+            min_wave = np.amin(wave_sol)
 
-            num_cubes = 1
+            #append the values for each frame to inform user of bounds of this data set if their values are out of bounds
+            max_wave_set.append(max_wave)
+            min_wave_set.append(min_wave)
+
+            #If they choose to collapse entire cube ([0,0]) all data cubes are collapsed into images
+            if low_wave == 0 and high_wave == 0:
+                num_cubes = num_cubes + 1 
+                print('Building image from '+spec_chan+' channel cube: '+op.basename(c))
+                print('Collapsing entire cube')
+
+                sum_image  = np.sum(dat, axis=0) #sums data cube in z direction
+                pyfits.writeto( location_prefix+'Col'+op.basename(c), sum_image, header=hdr, clobber=True)
+                print('\n')
+
+            #If the user choose a wavelength range check if it in range of this cube 
             if (low_wave >= min_wave) and (high_wave <= max_wave):
-                num_cubes = num_cubes +1 
-                print('Building image from '+spec_chan+' channel cube: '+op.basename(c)+'.fits')
+                num_cubes = num_cubes + 1 
+                print('Building image from '+spec_chan+' channel cube: '+op.basename(c))
+                print('Collapsing cube from '+str(low_wave)+' to '+str(high_wave))
 
-                low_wave = col_wave_range[0]
-                hig_wave = col_wave_range[1]
+                #find what index these wavelengths most closely correspond to. 
+                low_ind  = (np.abs(wave_sol-low_wave)).argmin()
+                high_ind = (np.abs(wave_sol-high_wave)).argmin()
 
-                #find what index these wavelengths mmost closely correspond to. 
+                #find wavelength value at this index - not exactly users choice so want to print value
+                low_val  = str(wave_sol[low_ind]).split('.')[0]
+                high_val = str(wave_sol[high_ind]).split('.')[0]
+
                 #Build image from that data cube 
-                dat_region = dat[low_ind:high_ind,:,:]
-                sum_image  = sum(dat_region, axis=0)
-                pyfits.writeto( 'Col'+op.basename(c))
+                dat_region = dat[low_ind:high_ind,:,:] #build region from low to high z - include all x,y
+                sum_image  = np.sum(dat_region, axis=0) #sum the image in the z direction
+                pyfits.writeto( location_prefix+'Col_'+low_val+'_'+high_val+'_'+op.basename(c), sum_image, header=hdr, clobber=True)
+                print('\n')
 
-
-
-        "Wavelength range you choose for collapse cube is out of range"
-        sys.exit("For LRS2-"+LRS2_spec+" ")
-
-
+        #if num_cubes is 0: all cubes out of wavelength range of users choice 
+        if num_cubes == 0:
+            print ("Wavelength range you choose for collapse cube is out of range")
+            sys.exit("This LRS2-"+LRS2_spec+" data set ranges between: "+str(np.amin(min_wave_set))+" and "+str(np.amax(max_wave_set))+" Angstroms")
 
     return vframes
     
