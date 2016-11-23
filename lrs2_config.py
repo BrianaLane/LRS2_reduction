@@ -10,7 +10,7 @@
 #LRS2-Red contains the red (650-842nm) and far-red (818-1050nm) channels (R)
 LRS2_spec    	= 'B' 		#choose R or B only 
 
-redux_dir       = "shela_z4_731"	 		#name of the folder reduction is run - folder created by script
+redux_dir       = "shela_z4_731_test"	 		#name of the folder reduction is run - folder created by script
 date_folder     = "20160731"			#date folder containing raw data 
 
 zro_folder      = ["lrs20000018",]		#[need]   folders containing raw bias images 
@@ -26,7 +26,7 @@ configdir       = "/Users/Briana/Documents/Grad_School/LRS2/LRS2_reduction/lrs2_
 basic           = True		#run basic reduction (overscan + bias subtract, ccd combine, build mastertrace + masterarc)
 run_deformer    = True		#run deformer to map spectral traces and build wavelength solution for fiber extraction
 subsky          = True		#run sky subtraction on sci images - Need to have run deformer, only runs on non-extracted spectra
-fiberextract    = True	 	#extract spectra and save into fits file - Need to have run deformer
+fiberextract    = True 	 	#extract spectra and save into fits file - Need to have run deformer
 makecube 		= True		#builds data cube out of fiber extracted image - Need to have run fiberextract
 collapseCube 	= True		#collapse data cube to make an image of a wavelength range of the users choice
 
@@ -62,5 +62,5 @@ diffAtmRef		= True  		#[True/False] Differential atmospheric refraction correcti
 ######################
 # collapse cube opts #
 ######################
-col_wave_range 	= [0,0]			#[floatarray] Choose the wavelength range (IN ANGSTROMS) that you would like to build and image of 
+col_wave_range 	= [6060,6090]			#[floatarray] Choose the wavelength range (IN ANGSTROMS) that you would like to build and image of 
 									#you can choose [0,0] if you would like the collapse the entire data cube 

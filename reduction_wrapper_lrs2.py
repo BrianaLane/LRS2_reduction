@@ -249,12 +249,27 @@ class VirusFrame:
             self.orggain     = hdulist[0].header['GAIN']
             self.orgrdnoise  = hdulist[0].header['RDNOISE']
             self.exptime     = hdulist[0].header['EXPTIME']
-            self.object      = hdulist[0].header['OBJECT'].split('_')[0]
 
-            if len(hdulist[0].header['OBJECT'].split('_')) > 1:
+            #for cal data: object will have R or B appended for the liquid light guide used 
+            #for sci data: object will have R or B appended for the unit that was pointed at the sci target
+            #this is not true for older data and is sometimes inconsistent so if no tag cal_side = None
+            if len(hdulist[0].header['OBJECT'].split('_')) == 1:
+                self.object   = hdulist[0].header['OBJECT']
+                self.cal_side = None
+            elif self.type != 'sci':
+                self.object   = hdulist[0].header['OBJECT'].split('_')[0]
                 self.cal_side = hdulist[0].header['OBJECT'].split('_')[1]
             else:
-                self.cal_side = None
+                #sci objects can have multiple '_' so have to check if the last one is a tag R or B
+                end_term = hdulist[0].header['OBJECT'].split('_')[-1]
+                if (end_term == 'R') or (end_term == 'B'):
+                    self.object   = hdulist[0].header['OBJECT'][0:-2]
+                    self.cal_side = end_term
+                else:
+                    self.object   = hdulist[0].header['OBJECT']
+                    self.cal_side = None
+
+            #print (self.type, self.object, self.cal_side)
 
     def addbase(self, action, amp = None, side = None):
         if self.clean:
@@ -741,7 +756,7 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
                         first_run = False
                     else:
                         first_run = True
-                        print ("You are running reduction on early LRS2_data")
+                        print ("WARNING:You are running reduction on shared-risk LRS2_data - calibration data set may not be ideal")
                         if (LRS2_spec == "R") and (all_copy):
                             print ("Calibration data is not optimal - some reference flats and comps will be taken from lrs2_config")
                             #if first_run (old data) and reducing Red - copies long Qth exposures from config file to flt directory
@@ -824,14 +839,33 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             ucam = "503"
 
     #from the vframes makes lists of files vframes according to type and specid (ucam)
-    tframes = [v for v in vframes if (v.specid == ucam) and (v.cal_side == None or v.cal_side == LRS2_spec)] # gives all frames 
-    oframes = [t for t in tframes if v.type != "zro" ] # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
-    dframes = [t for t in tframes if v.type == "drk" ] # gives dark frames
-    cframes = [t for t in tframes if (v.type == "flt" or v.type == "cmp") ] # gives "flt" and "cmp" frames
-    lframes = [t for t in tframes if v.type == "cmp" ] # gives just "cmp" frames
-    fframes = [t for t in tframes if v.type == "flt" ] # gives just "flt" frames
-    sframes = [t for t in tframes if v.type == "sci" ] # gives just "sci" frames
-    zframes = [t for t in tframes if v.type == "zro" ] # gives just "zro" frames
+    tframes  = [v for v in vframes if (v.specid == ucam) and (v.cal_side == None or v.cal_side == LRS2_spec)] # gives all frames 
+
+    oframes  = [t for t in tframes if t.type != "zro" ] # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
+    dframes  = [t for t in tframes if t.type == "drk" ] # gives dark frames
+    cframes  = [t for t in tframes if (t.type == "flt" or t.type == "cmp") ] # gives "flt" and "cmp" frames
+    lframes  = [t for t in tframes if t.type == "cmp" ] # gives just "cmp" frames
+    fframes  = [t for t in tframes if t.type == "flt" ] # gives just "flt" frames
+    zframes  = [t for t in tframes if t.type == "zro" ] # gives just "zro" frames
+    spframes = [t for t in tframes if t.type == "sci" ] # gives just "sci" frames with correct LRS2_spec pointing
+
+    sframes  = [v for v in vframes if v.type == "sci" and (v.specid == ucam)] # gives just "sci" frames with any pointing
+
+    #Check that data is correct
+    if len(lframes) == 0:
+        print ("You did not provide the correct comp frames for this data set")
+        sys.exit("Either the flt_folder you provided are not flats or these are not for LRS2-"+LRS2_spec)
+    if len(fframes) == 0:
+        print ("You did not provide the correct flat frames for this data set")
+        sys.exit("Either the Hg/Cd/FeAr_folder you provided are not comps or these are not for LRS2-"+LRS2_spec)
+    if len(zframes) == 0:
+        print ("You did not provide zero frames for this data set")
+        sys.exit("Check the data type of the zro_folder you provided to make sure they are zro images")
+    if len(sframes) == 0:
+        print ("You did not provide science frames for this data set")
+        sys.exit("Check the data type of the sci_folder you provided to make sure they are sci images")
+    if len(spframes) == 0:
+        print ("WARNING: You did not provide sci frames with LRS2-"+LRS2_spec+" pointings - these may just be sky frames")
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
@@ -1074,6 +1108,12 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('*************************************************************************')
         print ('* RUNNING DEFORMER TO BUILD DISTORTION SOLUTION AND WAVELENGTH SOLUTION *')
         print ('*************************************************************************')
+        #check that basic has been run 
+        trace_files = glob.glob(op.join(redux_dir,'mastertrace*'))
+        arc_files   = glob.glob(op.join(redux_dir,'masterarc*'))
+        if len(trace_files) == 0 or len(arc_files) == 0:
+            sys.exit("You must run basic reduction before you can run deformer")
+
         for side in SPECBIG:  
             #selects wavelength range and ref arc line for each channel
             if (LRS2_spec == 'B') and (side == 'L'):
@@ -1101,6 +1141,11 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('************************************************')
         print ('* PERFORMING SKY SUBTRACTION ON SCIENCE FRAMES *')
         print ('************************************************')
+        #check that deformer has been run 
+        dist_files = glob.glob(op.join(redux_dir,'*.dist'))
+        if len(dist_files) == 0:
+            sys.exit("You must run deformer before you can run sky subtraction")
+
         for side in SPECBIG:
             distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
             fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
@@ -1112,6 +1157,10 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('****************************************')
         print ('* EXTRACTING SPECTRA IN SCIENCE FRAMES *')
         print ('****************************************')
+        #check that deformer has been run 
+        dist_files = glob.glob(op.join(redux_dir,'*.dist'))
+        if len(dist_files) == 0:
+            sys.exit("You must run deformer before you can run fiber extract")
 
         #finds if there are sky subtracted files. If so it uses those.
         Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/Sp*_sci_*.fits")
@@ -1230,7 +1279,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         #makes sure there are actually data cubes made from wavelength resampled, fiber extracted data in the sci directory 
         #If data cubes were made from fiber extracted fibers that do not wl resample they do not contain WCS info needed
         if len(Cufiles) == 0:
-            sys.exit("You must build data cubes from wavelength resampled, fiber extracted data")
+            sys.exit("You must build data cubes from wavelength resampled, fiber extracted data before running collapse cube")
 
         #user defined wavelength range to collapse cube 
         low_wave  = col_wave_range[0]
