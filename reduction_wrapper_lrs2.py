@@ -68,7 +68,8 @@ instrument = spec_define.rstrip('\n')
 if instrument == 'LRS2':
     print ('CURE is set for LRS2 reduction')
 else: 
-    sys.exit('You need to update specconf.h in CURE to define LRS2')
+    print ('You need to update specconf.h in CURE to define LRS2')
+    sys.exit('Right now specconf.h defines '+instrument)
 
 ###################################
 # Defining which functions to run #
@@ -89,7 +90,7 @@ if basic:
     rmcosmics       = rmCosmics 
     fix_chan        = True
     dividepf        = dividePixFlt
-    normalize       = False
+    normalize       = True
     masterdark      = ifdarks
     subtractdark    = ifdarks
     masterarc       = True  
@@ -507,7 +508,7 @@ def ccdcombine(frames):
 
 def addphotonnoise(frames, side):
 
-    command = 'addphotonnoise'
+    command = 'addphotonnoise --gain_key GAIN'
     
     filenames = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in frames]
 
@@ -869,12 +870,13 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
-    if os.path.isfile(redux_dir+'/lrs2_config_'+redux_dir+'_copy.py') == True:
-        os.remove(redux_dir+'/lrs2_config_'+redux_dir+'_copy.py')
-        shutil.copy ( os.path.dirname(os.path.realpath(__file__))+'/lrs2_config.py', redux_dir+'/lrs2_config_'+redux_dir+'_copy.py' )
+    if os.path.isfile(redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py') == True:
+        os.remove(redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py')
+        shutil.copy ( os.path.dirname(os.path.realpath(__file__))+'/lrs2_config.py', redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py' )
     else:
-        shutil.copy ( os.path.dirname(os.path.realpath(__file__))+'/lrs2_config.py', redux_dir+'/lrs2_config_'+redux_dir+'_copy.py' )
+        shutil.copy ( os.path.dirname(os.path.realpath(__file__))+'/lrs2_config.py', redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py' )
 
+    # Run basic reduction
     if basic:
         for sp in SPEC:
             trimsec = f1.trimsec["LL"] # Trimsec assumed to be the same for all frames of a given amp
@@ -894,6 +896,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             print ('*****************************')
             extractfits ( trimsec, tframes, sp )       # for all frames
 
+            # Remove cosmic rays using L.A.cosmic
             if rmcosmics:
                 print ('******************************************')
                 print ('* REMOVE COSMIC RAYS (SCI IMAGES) FOR '+sp+' *')
@@ -962,11 +965,11 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             opt = "--file {:s}".format(pflat)
             dividepixelflat(oframes, opt, side, ucam)
     
+    # Normalizing Calibration Frames by Exposure Time
     if normalize:
         print ('***************************************************')
         print ('* NORMALIZING CALIBRATION IMAGES BY EXPOSURE TIME *')
         print ('***************************************************')
-        # Normalizing Calibration Frames by Exposure Time
         for cal in cframes:
             for side in SPECBIG:
                 opt     = '-c {:0.1f}'.format(cal.exptime)
@@ -975,9 +978,9 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
                 cal.addbase ('d', side = side)
                 filename = op.join ( cal.origloc, cal.actionbase[side] + cal.basename + '_' + cal.ifuslot + '_' + cal.type + '_' + side + '.fits' )
                 headfits ( filename , headfitsopts )
-                
+    
+    # Make Master Arc Frames           
     if masterarc:        
-        # Making Master Arc Frames
         print ('**********************')
         print ('* BUILDING MASTERARC *')
         print ('**********************')
@@ -1024,7 +1027,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
                     os.remove ( filename )
                     os.remove ( filename_e )
          
-    # Making Master Trace Frames
+    # Make Master Trace Frames
     if mastertrace:
         print ('************************')
         print ('* BUILDING MASTERTRACE *')
@@ -1211,7 +1214,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         for l in left_files:
             os.rename(l, op.join(redux_dir,l))
 
-    #Run mkcube
+    # Run mkcube
     if makecube:
         print ('***********************')
         print ('* BUILDING DATA CUBES *')
@@ -1267,7 +1270,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         #cd back into the reduction directory 
         os.chdir('../../')
 
-    #Run mkcube
+    # Run collapse cube
     if collapseCube:
         print ('***************************************')
         print ('* COLLAPSING DATA CUBE TO BUILD IMAGE *')

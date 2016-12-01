@@ -8,10 +8,11 @@
 #Reduction is run on only one spectograph unit at a time because mastertrace and arcs will be different
 #LRS2-Blue contains the UV (370-470nm) and orange (460-700nm) channels (B)
 #LRS2-Red contains the red (650-842nm) and far-red (818-1050nm) channels (R)
-LRS2_spec    	= 'B' 		#choose R or B only 
 
-redux_dir       = "shela_z4_731_test"	 		#name of the folder reduction is run - folder created by script
-date_folder     = "20160731"			#date folder containing raw data 
+LRS2_spec    	= 'B' 					#choose R or B only 
+
+redux_dir       = "/Users/Briana/Documents/Grad_School/LRS2/Data_Sets/Matt_z4/shela_z4_731_test"	#name of the folder reduction is run - folder created by script
+date_folder     = "/Users/Briana/Documents/Grad_School/LRS2/Data_Sets/Matt_z4/20160731"			#date folder containing raw data 
 
 zro_folder      = ["lrs20000018",]		#[need]   folders containing raw bias images 
 drk_folder		= []					#[opt]    folders containing darks for science frames
