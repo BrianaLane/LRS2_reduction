@@ -138,31 +138,31 @@ cubeopts        = "-a "+str(sky_sampling)+" -k "+str(max_distance)+" -s "+str(cu
 #reads folder names from config file
 zro_file_loc = []
 for z in zro_folder:
-    zro_file_loc.append(date_folder+"/"+z)
+    zro_file_loc.append(date_folder+"/lrs2/"+z)
 
 drk_file_loc = []
 for d in drk_folder:
-    drk_file_loc.append(date_folder+"/"+d)
+    drk_file_loc.append(date_folder+"/lrs2/"+d)
 
 flt_file_loc = []
 for f in flt_folder:
-    flt_file_loc.append(date_folder+"/"+f)
+    flt_file_loc.append(date_folder+"/lrs2/"+f)
 
 sci_file_loc = []
 for s in sci_folder:
-    sci_file_loc.append(date_folder+"/"+s)
+    sci_file_loc.append(date_folder+"/lrs2/"+s)
 
 Hg_file_loc = []
 for h in Hg_folder:
-    Hg_file_loc.append(date_folder+"/"+h)
+    Hg_file_loc.append(date_folder+"/lrs2/"+h)
 
 Cd_file_loc = []
 for c in Cd_folder:
-    Cd_file_loc.append(date_folder+"/"+c)
+    Cd_file_loc.append(date_folder+"/lrs2/"+c)
 
 FeAr_file_loc = []
 for a in FeAr_folder:
-    FeAr_file_loc.append(date_folder+"/"+a)
+    FeAr_file_loc.append(date_folder+"/lrs2/"+a)
 
 if   LRS2_spec == 'B':
     cmp_file_loc = Hg_file_loc + Cd_file_loc

@@ -23,8 +23,8 @@ date_folder     = "/work/03946/hetdex/maverick/20160731"
 zro_folder      = ["lrs20000018",]		#[need]   folders containing raw bias images 
 drk_folder		= []					#[opt]    folders containing darks for science frames
 Hg_folder       = ["lrs20000013",]		#[need]   folders containing raw Hg arc lamp images 
+FeAr_folder     = []					#[need]   folders containing raw FeAr arc lamp images
 Cd_folder       = ["lrs20000014",]		#[only-B] folders containing raw Cd arc lamp images 
-FeAr_folder     = []					#[only-R] folders containing raw FeAr arc lamp images
 flt_folder      = ["lrs20000016",]		#[need]   folders containing raw flat images (LRS2-R use Qth) (LRS2-B use LDLS)
 sci_folder      = ["lrs20000021",]		#[need]   folders containing the science observations for that night 
 
