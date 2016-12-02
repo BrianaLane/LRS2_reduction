@@ -61,7 +61,7 @@ if not CURELRS2:
     sys.exit("Please set CURELRS2 as environment variable")
 
 #checking that LRS2 is defined in specconf.h 
-cureversion = os.popen(op.join(CUREBIN, 'cureversion')).readlines()
+cureversion = os.popen(op.join(CURELRS2, 'cureversion')).readlines()
 spec_define = cureversion[4].split(' ')[1]
 instrument = spec_define.rstrip('\n')
 
