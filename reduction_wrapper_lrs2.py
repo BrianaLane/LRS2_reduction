@@ -986,8 +986,10 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('**********************')
         if ucam == '501':
             LAMP_DICT = {0:'Hg',1:'Cd'}
-        if (ucam == '502') or (ucam == '503'):
+        if (ucam == '502'):
             LAMP_DICT = {0:'Hg',1:'FeAr'}
+        if (ucam == '503'):
+            LAMP_DICT = {0:'Hg',1:'Cd', 2:'FeAr'}
         for side in SPECBIG:
             for lamp in LAMP_DICT.values():
                 #Creates a masterarc frame for each arc lamp in LAMP_DICT
