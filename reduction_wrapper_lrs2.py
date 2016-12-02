@@ -54,11 +54,11 @@ else:
 ##################################################
 
 #setting CUREBIN
-CUREBIN = None
-if not CUREBIN:
-    CUREBIN = environ.get('CUREBIN')
-if not CUREBIN:
-    sys.exit("Please set CUREBIN as environment variable")
+CURELRS2 = None
+if not CURELRS2:
+    CURELRS2 = environ.get('CURELRS2')
+if not CURELRS2:
+    sys.exit("Please set CURELRS2 as environment variable")
 
 #checking that LRS2 is defined in specconf.h 
 cureversion = os.popen(op.join(CUREBIN, 'cureversion')).readlines()
@@ -349,9 +349,9 @@ def run_cure_command(command, suppress_output=0, debug=1):
     if debug:
         print('Running: \'%s\'' % command)
     if not suppress_output:
-        return os.system(op.join(CUREBIN, command) +' 1>>output.log  2>> error.log')
+        return os.system(op.join(CURELRS2, command) +' 1>>output.log  2>> error.log')
     else:
-        return os.system(op.join(CUREBIN, command))
+        return os.system(op.join(CURELRS2, command))
         
         
 def mkerrorframe(frames, amp):
