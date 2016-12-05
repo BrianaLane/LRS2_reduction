@@ -869,6 +869,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
             for file_loc in file_loc_dir[i]:
 
+                print (len(file_loc),file_loc)
+
                 # Loop through the retrieved files names to copy to new structure
                 # Create a VirusFrame class for each frame that can maintain info for each original frame
                 # The VirusFrame is critical for the rest of the reduction pipeline
