@@ -865,27 +865,22 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             # If the reduction location exists, don't re-make the directory (also, any files in that directory remain)
             if not op.exists ( op.join ( redux_dir, DIR_DICT[i] ) ):
                 os.mkdir ( op.join ( redux_dir, DIR_DICT[i] ) )
-            # Run through the list of ObsID's, exposures, or other structures to gather all desired images for a particular type (e.g., zro)
 
-            for file_loc in file_loc_dir[i]:
-
-                print (len(file_loc),file_loc)
-
-                # Loop through the retrieved files names to copy to new structure
-                # Create a VirusFrame class for each frame that can maintain info for each original frame
-                # The VirusFrame is critical for the rest of the reduction pipeline
-                # Only gather VirusFrame objects for LL frames as a single VirusFrame serves for all four amps
-                if all_copy:
-                    #must copy all file to directories first
-                    for f in file_loc:  
-                        shutil.copy ( f.filename, op.join ( redux_dir, DIR_DICT[i] ) )
-                    for f in file_loc:        
-                        a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
-                        vframes.append(copy.deepcopy(a))
-                else: 
-                    for f in file_loc:
-                        a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
-                        vframes.append(copy.deepcopy(a))
+            # Loop through the retrieved files names to copy to new structure
+            # Create a VirusFrame class for each frame that can maintain info for each original frame
+            # The VirusFrame is critical for the rest of the reduction pipeline
+            # Only gather VirusFrame objects for LL frames as a single VirusFrame serves for all four amps
+            if all_copy:
+                #must copy all file to directories first
+                for f in file_loc_dir[i]:  
+                    shutil.copy ( f.filename, op.join ( redux_dir, DIR_DICT[i] ) )
+                for f in file_loc_dir[i]:        
+                    a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
+                    vframes.append(copy.deepcopy(a))
+            else: 
+                for f in file_loc_dir[i]:
+                    a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
+                    vframes.append(copy.deepcopy(a))
                         
     return vframes, first_run
 
