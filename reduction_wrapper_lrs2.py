@@ -564,7 +564,7 @@ def deformer(mastertrace,masterarc,linesfile,wave_range,ref_line,opts):
     
 def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
     
-    filenames = [(redux_dir + '/' + sci_dir + '/pses' + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in frames]
+    filenames = [(redux_dir + '/' + sci_dir + '/' + f.object + '/pses' + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in frames]
 
     for f in filenames:
         
@@ -1081,16 +1081,9 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         print ('* BUILDING MASTERTRACE *')
         print ('************************')
         for side in SPECBIG:
-            #Check that the proper flat lamp images were choosen for the spec being reduced 
-            if fframes[0].object.split('_')[0] != FLT_LAMP:
-                print ('LRS2-'+LRS2_spec+' requires '+FLT_LAMP+' flats: You choose '+fframes[0].object.split('_')[0]+' flats')
-                print ('Please update config file: flt_folder should be folder containing '+FLT_LAMP+' flats')
-                return None 
-            #Build a list of flat frames matching the correct lamp
-            fframesselect = [f for f in fframes if f.specid == ucam and f.object.split('_')[0] == FLT_LAMP] 
             #If there is more than one frame take a median from of the ones provided for the mastertrace
-            if len ( fframesselect ) > 1:
-                meantracefits(side, ucam, redux_dir, 'mastertrace', traceopts, fframesselect)
+            if len ( fframes ) > 1:
+                meantracefits(side, ucam, redux_dir, 'mastertrace', traceopts, fframes)
             #If there was only one frame provided that frame becomes the mastertrace
             else:
                 filename = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframesselect]
@@ -1148,6 +1141,15 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         #before writing the new file it moves the old mastertrace to a file with _orig appended to save original file
         shutil.move(redux_dir+'/mastertrace_501_R.fits',redux_dir+'/mastertrace_501_R_orig.fits')
         pyfits.writeto(redux_dir+'/mastertrace_501_R.fits', data = dat, header = hdr, clobber=True)
+
+    if sort_sci:
+        print ('**************************************************')
+        print ('* SORTING SCIENCE FRAMES INTO OBJECT DIRECTORIES *')
+        print ('**************************************************')    
+        for s in sci_objects:
+            os.mkdir ( op.join( redux_dir, sci_dir, s ))
+        for s in sframes:
+            os.mv (s.filename, op.join( s.filename, s.object ) )
             
     # Run Deformer
     if run_deformer:
@@ -1208,7 +1210,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             sys.exit("You must run deformer before you can run fiber extract")
 
         #finds if there are sky subtracted files. If so it uses those.
-        Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/Sp*_sci_*.fits")
+        Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "Sp*_sci_*.fits")
         if len(Sfiles) == 0:
             base = 'pses'
         else:
@@ -1263,13 +1265,13 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
 
         #builds a list of files to build a data cube 
         #checks for if there are wavelength resampled fiber extracted and sky subtracted files
-        Fefiles = glob.glob("FeRS*_sci_*.fits")
+        Fefiles = glob.glob( "*/FeRS*_sci_*.fits")
         #if not then checks for fiber extraced and sky subtracted files 
         if len(Fefiles) == 0:
-            Fefiles = glob.glob("FeS*_sci_*.fits")
+            Fefiles = glob.glob("*/FeS*_sci_*.fits")
         #if not checks for any type of fiber extracted files (resampled or not)
         if len(Fefiles) == 0:
-            Fefiles = glob.glob("Fe*_sci_*.fits")
+            Fefiles = glob.glob("*/Fe*_sci_*.fits")
 
         if len(Fefiles) == 0:
             sys.exit("No fiber extracted files found - You must run fiberextract before building data cube")
@@ -1314,7 +1316,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         print ('* COLLAPSING DATA CUBE TO BUILD IMAGE *')
         print ('***************************************')
         #cd into the science directory 
-        location_prefix = redux_dir + "/" + sci_dir + "/" 
+        location_prefix = redux_dir + "/" + sci_dir + "/*/" 
         Cufiles = glob.glob(location_prefix + "CuFeR*_sci_*.fits")
 
         #makes sure there are actually data cubes made from wavelength resampled, fiber extracted data in the sci directory 
