@@ -727,7 +727,7 @@ def initial_setup ( redux_dir = None):
 
     if len(zframes_orig) == 0:
         sys.exit("No biases were found for this night")
-    print ('Found '+len(zframes_orig)+' zro frames')
+    print ('Found '+str(len(zframes_orig))+' zro frames')
 
     #------------#
     # flt frames #
@@ -747,7 +747,7 @@ def initial_setup ( redux_dir = None):
 
     if len(fframes_orig) == 0:
         sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
-    print ('Found '+len(fframes_orig)+' '+FLT_LAMP+' flt frames')
+    print ('Found '+str(len(fframes_orig))+' '+FLT_LAMP+' flt frames')
 
     #-----------#
     # Hg frames #
@@ -756,7 +756,7 @@ def initial_setup ( redux_dir = None):
 
     if len(hgframes) == 0:
         sys.exit("No Hg lamp exposures were found for this night")
-    print ('Found '+len(hgframes)+' Hg frames')
+    print ('Found '+str(len(hgframes))+' Hg frames')
 
     #----------------#
     # 501 cmp frames #
@@ -766,7 +766,7 @@ def initial_setup ( redux_dir = None):
 
         if len(cdframes) == 0:
             sys.exit("No Cd lamp exposures were found for this night")
-        print ('Found '+len(cdframes)+' Cd frames')
+        print ('Found '+str(len(cdframes))+' Cd frames')
 
         lframes_orig  = hgframes + cdframes # gives just "cmp" frames
 
@@ -778,7 +778,7 @@ def initial_setup ( redux_dir = None):
         
         if len(faframes) == 0:
             sys.exit("No FeAr lamp exposures were found for this night") 
-        print ('Found '+len(faframes)+' FeAr frames')
+        print ('Found '+str(len(faframes))+' FeAr frames')
         
         lframes_orig  = hgframes + faframes # gives just "cmp" frames
 
@@ -800,13 +800,13 @@ def initial_setup ( redux_dir = None):
 
         if len(cdframes) == 0:
             sys.exit("No Cd lamp exposures were found for this night")
-        print ('Found '+len(cdframes)+' Cd frames')
+        print ('Found '+str(len(cdframes))+' Cd frames')
 
         faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "Cd" frames
 
         if len(faframes) == 0:
             sys.exit("No FeAr lamp exposures were found for this night")
-        print ('Found '+len(faframes)+' FeAr frames')
+        print ('Found '+str(len(faframes))+' FeAr frames')
 
         lframes_orig  = hgframes + cdframes + faframes # gives just "cmp" frames
 
@@ -815,7 +815,7 @@ def initial_setup ( redux_dir = None):
     #------------#
     if subDarks:
         dframes_orig  = [t for t in tframes if t.type == "drk" ] # gives dark frames
-        print ('Found '+len(dframes_orig)+' drk frames')
+        print ('Found '+str(len(dframes_orig))+' drk frames')
         drk_exptime = list(set([float(d.exptime) for d in dframes_orig]))
     else:
         dframes_orig  = []
@@ -839,7 +839,7 @@ def initial_setup ( redux_dir = None):
         sfr  = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and t.object == s]
         spframes_lis.append(spfr)
         sframes_lis.append(sfr)
-        print ("There were "+len(sfr)+" science frames found for "+s)
+        print ("There were "+str(len(sfr))+" science frames found for "+s)
         if len(sfr) == 0:
             print ("There were no science frames with object name: "+s)
             sys.exit("These are the object names found for the night: "+sci_obj_names)
