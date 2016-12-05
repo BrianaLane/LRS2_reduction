@@ -49,6 +49,8 @@ elif LRS2_spec == 'R':
 else:
     sys.exit('You need to choose either R or B for LRS2_spec')
 
+print (sci_objects)
+
 ##################################################
 # Setting CUREBIN and check LRS2 defined in CURE #
 ##################################################
@@ -643,9 +645,6 @@ def initial_setup ( redux_dir = None):
     keywords for other functions as well as time of the observation and basename
     '''
 
-    print (redux_dir)
-    print (sci_objects)
-
     #########################
     # Build redux directory #
     #########################
@@ -911,6 +910,8 @@ def basicred( redux_dir, basic = False, dividepf = False,
     print ('*************************')
     print ('* BUILDING IMAGE FRAMES *')
     print ('*************************')
+
+    print (sci_objects)
 
     #holds the VIRUS frames for all of the data 
     vframes, first_run = initial_setup ( redux_dir )
