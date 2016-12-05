@@ -133,43 +133,8 @@ cubeopts        = "-a "+str(sky_sampling)+" -k "+str(max_distance)+" -s "+str(cu
 
 #########################
 # Defining data folders #
-#########################
+######################### 
 
-#reads folder names from config file
-zro_file_loc = []
-for z in zro_folder:
-    zro_file_loc.append(date_folder+"/lrs2/"+z)
-
-drk_file_loc = []
-for d in drk_folder:
-    drk_file_loc.append(date_folder+"/lrs2/"+d)
-
-flt_file_loc = []
-for f in flt_folder:
-    flt_file_loc.append(date_folder+"/lrs2/"+f)
-
-sci_file_loc = []
-for s in sci_folder:
-    sci_file_loc.append(date_folder+"/lrs2/"+s)
-
-Hg_file_loc = []
-for h in Hg_folder:
-    Hg_file_loc.append(date_folder+"/lrs2/"+h)
-
-Cd_file_loc = []
-for c in Cd_folder:
-    Cd_file_loc.append(date_folder+"/lrs2/"+c)
-
-FeAr_file_loc = []
-for a in FeAr_folder:
-    FeAr_file_loc.append(date_folder+"/lrs2/"+a)
-
-if   LRS2_spec == 'B':
-    cmp_file_loc = Hg_file_loc + Cd_file_loc
-elif LRS2_spec == 'R':
-    cmp_file_loc = Hg_file_loc + FeAr_file_loc  
-
-#specify folders where data types are stored
 zro_dir  = "zro"
 flt_dir  = "flt"
 sci_dir  = "sci"
@@ -179,10 +144,6 @@ drk_dir  = "drk"
 ##########################
 # Building Spec Libaries #
 ##########################
-
-#dictionary of data type folders 
-file_loc_dir = [ zro_file_loc, drk_file_loc, cmp_file_loc, flt_file_loc, sci_file_loc ] # Should match order of dictionary, otherwise there will be mismatches
-DIR_DICT     = {    0:zro_dir,    1:drk_dir,    2:cmp_dir,    3:flt_dir,    4:sci_dir } # Dictionary for looping through directory names
 
 #Detector Amps and spectrograph side lists 
 SPEC = ["LL","LU","RL","RU"]
@@ -229,19 +190,18 @@ class VirusFrame:
             self.month                  = int(self.basename.split('T')[0][4:6])
             self.day                    = int(self.basename.split('T')[0][6:8])
             self.clean                  = CLEAN_AFTER_DONE
+            self.Trimsec                = "2:2065,1:1032" 
+            self.biassec                = "2066:2128,1:1032" 
 
             ###### READ IN THE HEADER AND NECESSARY KEYWORDS ######
-            self.trimsec    = {}
-            self.biassec    = {}
             self.actionbase = {}
-            for amp in SPEC:    
-                rootname          = op.join (self.origloc, self.basename + '_' + self.ifuslot + amp + '_' + self.type + '.fits' )
-                hdulist           = pyfits.open ( rootname )
+            for amp in SPEC:  
+                self.actionbase[amp] = ''   
+                #rootname          = op.join (self.origloc, self.basename + '_' + self.ifuslot + amp + '_' + self.type + '.fits' )
+                #hdulist           = pyfits.open ( rootname )
                 #self.trimsec[amp] = "\"" + re.split('[\[ \] ]',hdulist[0].header['TRIMSEC'])[1] + "\""
-                #self.biassec[amp] = "\"" + re.split('[\[ \] ]',hdulist[0].header['BIASSEC'])[1] + "\""
-                self.trimsec[amp] = "2:2065,1:1032" 
-                self.biassec[amp] = "2066:2128,1:1032"      
-                self.actionbase[amp] = ''            
+                #self.biassec[amp] = "\"" + re.split('[\[ \] ]',hdulist[0].header['BIASSEC'])[1] + "\""     
+           
 
             self.actionbase["L"] = initial_base  
             self.actionbase["R"] = initial_base  
@@ -691,7 +651,9 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
     5) Creating class variable, VirusFrame, for each file which records
     keywords for other functions as well as time of the observation and basename
     '''
-    vframes = [] # will fill this list with VirusFrame class objects for each image
+    #########################
+    # Build redux directory #
+    #########################
     if redux_dir is None:
         print ( "Please provide a reduction directory \"redux_dir\"." )
         return None
@@ -703,16 +665,192 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
                 shutil.rmtree ( redux_dir )
                 os.mkdir ( redux_dir )
 
-    if file_loc_dir is None:        
-        print ( "Please provide a file location directory \"file_loc_dir\"." )
-        print ( "This is a list of the location directories for each file type." )
-        return None
-        
-    if DIR_DICT is None:        
-        print ( "Please provide a directory dictionary \"DIR_DICT\"." )
-        print ( "The directory dictionary order should match the file location directory." )
-        return None
+    ####################################################
+    # Build VIRUS frames for all images in date folder #
+    ####################################################
+    aframes = [] # will fill this list with VirusFrame class objects for each image
+    #make a list of all fits files in the redux directory 
+    date_ims = glob.glob(op.join(date_folder,'lrs2/lrs2*/exp*/lrs2/*.fits'))
+    for f in date_ims:            
+        temp, temp1, temp2 = op.basename ( f ).split('_')
+        amp                = temp1[3:5]
+        if amp == "LL":
+            a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f ) ) ) 
+            aframes.append(copy.deepcopy(a)) 
+
+    #################
+    # Define SPECID #
+    #################
+    #first frames to pull basic header information 
+    a1 = aframes[0]
+
+    #Finds the date of the data taken to know if it is the new or old LRS2-B
+    #The swap time is also the time proper calibration data is taken
+    #Before the swap time far-red Qth exposures will be taken from config file
+    #if LRS2-B finds the date of the data taken to know if it is the new or old LRS2-B - stored as first_run
+    data_time      = datetime(int(a1.year), int(a1.month), int(a1.day)) 
+    lrs2B_swapTime = datetime(2016, 11, 15)
+    if data_time > lrs2B_swapTime:
+        first_run = False
+    else:
+        first_run = True
+        print ("WARNING:You are running reduction on shared-risk LRS2_data - calibration data set may not be ideal")
+
+    #checks which unit to reduce and sets ucam (specid) - If B decides if old or new specid based of first_run found in intial_setup()
+    if LRS2_spec == 'R':
+        ucam = "502"
+    elif LRS2_spec == 'B':
+        #if LRS2-B finds the date of the data taken to know if it is the new or old LRS2-B
+        if first_run:
+            ucam = "501"
+            print ("You are reducing data with the old LRS2-Blue - You must disregard data from the UV channel")
+        else:
+            ucam = "503"
+
+    #define cal lamps used based on SPECID   
+    if ucam == '501':
+        LAMP_DICT = {0:'Hg',1:'Cd'}
+        FLT_LAMP = 'Qth'
+    if (ucam == '502'):
+        FLT_LAMP = 'ldls'
+        LAMP_DICT = {0:'Hg',1:'FeAr'}
+    if (ucam == '503'):
+        FLT_LAMP = 'ldls'
+        LAMP_DICT = {0:'Hg',1:'Cd', 2:'FeAr'}
+
+
+    ############################################
+    # Find calibration data and science images #
+    ############################################
+    #from the vframes makes lists of files vframes according to type and specid (ucam)
+    tframes  = [a for a in aframes if (a.specid == ucam) and (a.cal_side == None or a.cal_side == LRS2_spec)] # gives all frames 
+
+    #------------#
+    # zro frames #
+    #------------#
+    zframes   = [t for t in tframes if t.type == "zro" ] # gives just "zro" frames
+    if len(zframes) == 0:
+        sys.exit("No biases were found for this night")
+
+    #------------#
+    # flt frames #
+    #------------#
+    fframes   = [t for t in tframes if t.type == "flt" and t.object == FLT_LAMP] # gives just "flt" frames
+
+    #if old first run data and LRS2-R - need to use long Qth exposures in config
+    if (ucam == '501') and first_run:
+        print ('Including long exposure Qth flats for far-red channel reduction')
+        longQth_files = glob.glob(configdir+'/FR_longCals/long_Qth'+fit_path)
+        for f in longQth_files:            
+            temp, temp1, temp2 = op.basename ( f ).split('_')
+            amp                = temp1[3:5]
+            if amp == "LL":
+                a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f ) ) ) 
+                fframes.append(copy.deepcopy(a)) 
+
+    if len(fframes) == 0:
+        sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
+
+    #-----------#
+    # Hg frames #
+    #-----------#
+    hgframes  = [t for t in tframes if t.type == "cmp" and t.object == "Hg"] # gives just "Hg" frames
+    if len(hgframes) == 0:
+        sys.exit("No Hg lamp exposures were found for this night")
+
+    #----------------#
+    # 501 cmp frames #
+    #----------------#
+    if ucam == '501':
+        cdframes = [t for t in tframes if t.type == "cmp" and t.object == "Cd"] # gives just "Cd" frames
+
+        if len(cdframes) == 0:
+            sys.exit("No Cd lamp exposures were found for this night")
+
+        lframes  = hgframes + cdframes # gives just "cmp" frames
+
+        #if old first run data and LRS2-R - need to use long Qth exposures in config
+        print ('Including long exposure FeAr comps for far-red channel reduction')
+        longFeAr_files = glob.glob(configdir+'/FR_longCals/long_FeAr'+fit_path)
+        for f in longFeAr_files:            
+            temp, temp1, temp2 = op.basename ( f ).split('_')
+            amp                = temp1[3:5]
+            if amp == "LL":
+                a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f ) ) ) 
+                lframes.append(copy.deepcopy(a)) 
+
+    #----------------#
+    # 502 cmp frames #
+    #----------------#
+    if ucam == '502':
+        faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "FeAr" frames
+        if len(faframes) == 0:
+            sys.exit("No FeAr lamp exposures were found for this night")
+        lframes  = hgframes + faframes # gives just "cmp" frames
+
+    #----------------#
+    # 503 cmp frames #
+    #----------------#
+    if ucam == '503':
+        cdframes = [t for t in tframes if t.type == "cmp" and t.object == "Cd"] # gives just "Cd" frames
+        if len(cdframes) == 0:
+            sys.exit("No Cd lamp exposures were found for this night")
+        faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "Cd" frames
+        if len(faframes) == 0:
+            sys.exit("No FeAr lamp exposures were found for this night")
+        lframes  = hgframes + cdframes + faframes # gives just "cmp" frames
+
+    #------------#
+    # drk frames #
+    #------------#
+    if sub_darks:
+        dframes  = [t for t in tframes if t.type == "drk" ] # gives dark frames
+    else:
+        dframes  = []
+
+    #------------#
+    # combo sets #
+    #------------#
+    cframes  = fframes + lframes # gives "flt" and "cmp" frames
+    oframes  = cframes + sframes + dframes # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
+
+    #------------#
+    # sci frames #
+    #------------#
+    allsframes  = [a for a in aframes if a.type == "sci" and (a.specid == ucam)]
+    sci_obj_names = []
+    for s in allsframes:
+        sci_obj_names.append(s.object)
+    sci_obj_names = list(set(sci_obj_names))
+
+    if len(sci_objects) == 0:
+        sci_objects = sci_obj_names
+
+    sframes_lis = []
+    spframes_lis = []
+    for s in sci_objects:
+        spfr = [t for t in tframes if t.type == "sci" and t.object == s ]
+        sfr  = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and t.object == s]
+        spframes_lis.append(spfr)
+        sframes_lis.append(sfr)
+        if len(sfr) == 0:
+            print ("There were no science frames with object name: "+s)
+            sys.exit("These are the object names found for the night: "+sci_obj_names)
+
+    spframes = [j for i in spframes_lis for j in i] # gives just "sci" frames with correct LRS2_spec pointing
+    sframes  = [j for i in sframes_lis  for j in i] # gives just "sci" frames with any pointing
+
+    #Check that data is correct
+    if len(spframes) == 0:
+        print ("WARNING: Science frames were found for you science objects but not with LRS2-"+LRS2_spec+" pointings - these may just be sky frames")
     
+    #########################################
+    # Copying frames to directory structure #
+    #########################################
+    #dictionary of data type folders 
+    file_loc_dir = [  zframes,   dframes,   lframes,   fframes,   sframes ] # Should match order of dictionary, otherwise there will be mismatches
+    DIR_DICT     = {  0:zro_dir, 1:drk_dir, 2:cmp_dir, 3:flt_dir, 4:sci_dir } # Dictionary for looping through directory names
+
     # Loop through the file location directories     
     for i in xrange ( len ( file_loc_dir ) ):
         # If the file_loc_dir[i] is None, then nothing is done
@@ -721,58 +859,8 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
             if not op.exists ( op.join ( redux_dir, DIR_DICT[i] ) ):
                 os.mkdir ( op.join ( redux_dir, DIR_DICT[i] ) )
             # Run through the list of ObsID's, exposures, or other structures to gather all desired images for a particular type (e.g., zro)
+
             for file_loc in file_loc_dir[i]:
-                # Trying to figure out what part of the directory structure was given to properly copy it
-                dir1 = op.basename ( file_loc )
-                if len ( dir1 ) > 5:
-                    fit_path  = "/exp*/lrs2/*.fits"
-                    filenames = glob.glob ( file_loc + fit_path )
-                elif len ( dir1 ) == 5:
-                    if dir1[0:3] == "exp": 
-                        fit_path  = "/lrs2/*.fits"                   
-                        filenames = glob.glob ( file_loc + fit_path )                    
-                    else:      
-                        fit_path  = "/*.fits"             
-                        filenames = glob.glob ( file_loc + fit_path )                   
-                else:               
-                    print ( "Did not recognize the " + DIR_DICT[i] + " basename as \"lrs2XXXXXXX\", \"expXX\", or \"lrs2\"." )
-                    return None
-
-                #this will perform a header check of the data when looping through the flats
-                #checks if it is early data and special cals are needed to be copied from the config file
-                if (file_loc_dir[i] == flt_file_loc) and (file_loc == file_loc_dir[i][0]):
-                    print ('******************************')
-                    print ('* Header Check for Data Date *')
-                    print ('******************************')
-                    #the header from the first flat frame is used 
-                    file1 = filenames[0] 
-                    a1 = VirusFrame( file1 )
-                    #Finds the date of the data taken to know if it is the new or old LRS2-B
-                    #The swap time is also the time proper calibration data is taken
-                    #Before the swap time far-red Qth exposures will be taken from config file
-                    #if LRS2-B finds the date of the data taken to know if it is the new or old LRS2-B - stored as first_run
-                    data_time      = datetime(int(a1.year), int(a1.month), int(a1.day)) 
-                    lrs2B_swapTime = datetime(2016, 11, 15)
-                    if data_time > lrs2B_swapTime:
-                        first_run = False
-                    else:
-                        first_run = True
-                        print ("WARNING:You are running reduction on shared-risk LRS2_data - calibration data set may not be ideal")
-                        if (LRS2_spec == "R") and (all_copy):
-                            print ("Calibration data is not optimal - some reference flats and comps will be taken from lrs2_config")
-                            #if first_run (old data) and reducing Red - copies long Qth exposures from config file to flt directory
-                            longQth_files = glob.glob(configdir+'/FR_longCals/long_Qth'+fit_path)
-                            print ('Copying long exposure Qth flats for far-red channel reduction')
-                            for q in longQth_files:
-                                shutil.copy ( q , op.join ( redux_dir, DIR_DICT[i] ) )
-
-                #If reducing Red data: copy long FeAr exposures to cmp directory for far-red reduction                
-                if (LRS2_spec == "R") and (all_copy):
-                    if (file_loc_dir[i] == cmp_file_loc) and (file_loc == file_loc_dir[i][0]):
-                        longFeAr_files = glob.glob(configdir+'/FR_longCals/long_FeAr'+fit_path)
-                        print ('Copying long exposure FeAr comps for far-red channel reduction')
-                        for fa in longFeAr_files:
-                            shutil.copy ( fa , op.join ( redux_dir, DIR_DICT[i] ) )
 
                 # Loop through the retrieved files names to copy to new structure
                 # Create a VirusFrame class for each frame that can maintain info for each original frame
@@ -780,23 +868,8 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
                 # Only gather VirusFrame objects for LL frames as a single VirusFrame serves for all four amps
                 if all_copy:
                     #must copy all file to directories first
-                    for f in filenames:  
+                    for f in file_loc:  
                         shutil.copy ( f, op.join ( redux_dir, DIR_DICT[i] ) )
-                    #once files copied it builds the virus frames for each
-                    for f in filenames:            
-                        temp, temp1, temp2 = op.basename ( f ).split('_')
-                        amp                = temp1[3:5]
-                        if amp == "LL":
-                            a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f ) ) ) 
-                            vframes.append(copy.deepcopy(a))
-                else:
-                    #if not all_copy does not copy files to directories but builds virus frames for each
-                    for f in filenames:            
-                        temp, temp1, temp2 = op.basename ( f ).split('_')
-                        amp                = temp1[3:5]
-                        if amp == "LL":
-                            a = VirusFrame(  f  ) 
-                            vframes.append(copy.deepcopy(a))
                         
     return vframes, first_run
 
@@ -824,49 +897,6 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
 
     #holds the VIRUS frames for all of the data 
     vframes, first_run = initial_setup ( file_loc_dir, redux_dir, DIR_DICT )
-
-    #first frames to pull basic header information 
-    f1 = vframes[0]
-
-    #checks which unit to reduce and sets ucam (specid) - If B decides if old or new specid based of first_run found in intial_setup()
-    if LRS2_spec == 'R':
-        ucam = "502"
-    elif LRS2_spec == 'B':
-        #if LRS2-B finds the date of the data taken to know if it is the new or old LRS2-B
-        if first_run:
-            ucam = "501"
-            print ("You are reducing data with the old LRS2-Blue - You must disregard data from the UV channel")
-        else:
-            ucam = "503"
-
-    #from the vframes makes lists of files vframes according to type and specid (ucam)
-    tframes  = [v for v in vframes if (v.specid == ucam) and (v.cal_side == None or v.cal_side == LRS2_spec)] # gives all frames 
-
-    oframes  = [t for t in tframes if t.type != "zro" ] # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
-    dframes  = [t for t in tframes if t.type == "drk" ] # gives dark frames
-    cframes  = [t for t in tframes if (t.type == "flt" or t.type == "cmp") ] # gives "flt" and "cmp" frames
-    lframes  = [t for t in tframes if t.type == "cmp" ] # gives just "cmp" frames
-    fframes  = [t for t in tframes if t.type == "flt" ] # gives just "flt" frames
-    zframes  = [t for t in tframes if t.type == "zro" ] # gives just "zro" frames
-    spframes = [t for t in tframes if t.type == "sci" ] # gives just "sci" frames with correct LRS2_spec pointing
-
-    sframes  = [v for v in vframes if v.type == "sci" and (v.specid == ucam)] # gives just "sci" frames with any pointing
-
-    #Check that data is correct
-    if len(lframes) == 0:
-        print ("You did not provide the correct comp frames for this data set")
-        sys.exit("Either the flt_folder you provided are not flats or these are not for LRS2-"+LRS2_spec)
-    if len(fframes) == 0:
-        print ("You did not provide the correct flat frames for this data set")
-        sys.exit("Either the Hg/Cd/FeAr_folder you provided are not comps or these are not for LRS2-"+LRS2_spec)
-    if len(zframes) == 0:
-        print ("You did not provide zero frames for this data set")
-        sys.exit("Check the data type of the zro_folder you provided to make sure they are zro images")
-    if len(sframes) == 0:
-        print ("You did not provide science frames for this data set")
-        sys.exit("Check the data type of the sci_folder you provided to make sure they are sci images")
-    if len(spframes) == 0:
-        print ("WARNING: You did not provide sci frames with LRS2-"+LRS2_spec+" pointings - these may just be sky frames")
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
@@ -984,12 +1014,6 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('**********************')
         print ('* BUILDING MASTERARC *')
         print ('**********************')
-        if ucam == '501':
-            LAMP_DICT = {0:'Hg',1:'Cd'}
-        if (ucam == '502'):
-            LAMP_DICT = {0:'Hg',1:'FeAr'}
-        if (ucam == '503'):
-            LAMP_DICT = {0:'Hg',1:'Cd', 2:'FeAr'}
         for side in SPECBIG:
             for lamp in LAMP_DICT.values():
                 #Creates a masterarc frame for each arc lamp in LAMP_DICT
@@ -1034,11 +1058,6 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         print ('************************')
         print ('* BUILDING MASTERTRACE *')
         print ('************************')
-
-        if LRS2_spec == 'B':
-            FLT_LAMP = 'ldls'
-        if LRS2_spec == 'R':
-            FLT_LAMP = 'Qth'
         for side in SPECBIG:
             #Check that the proper flat lamp images were choosen for the spec being reduced 
             if fframes[0].object.split('_')[0] != FLT_LAMP:
