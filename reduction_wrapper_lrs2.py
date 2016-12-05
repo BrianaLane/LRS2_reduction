@@ -184,7 +184,7 @@ class VirusFrame:
             self.month                  = int(self.basename.split('T')[0][4:6])
             self.day                    = int(self.basename.split('T')[0][6:8])
             self.clean                  = CLEAN_AFTER_DONE
-            self.Trimsec                = "2:2065,1:1032" 
+            self.trimsec                = "2:2065,1:1032" 
             self.biassec                = "2066:2128,1:1032" 
 
             ###### READ IN THE HEADER AND NECESSARY KEYWORDS ######
@@ -920,8 +920,6 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     cframes  = fframes + lframes # gives "flt" and "cmp" frames
     oframes  = cframes + sframes + dframes # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
 
-    print (len(zframes),len(dframes),len(lframes),len(fframes),len(sframes))
-
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
     if os.path.isfile(redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py') == True:
@@ -933,8 +931,8 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     # Run basic reduction
     if basic:
         for sp in SPEC:
-            trimsec = f1.trimsec["LL"] # Trimsec assumed to be the same for all frames of a given amp
-            biassec = f1.biassec["LL"] # Biassec assumed to be the same for all frames of a given amp
+            trimsec = f1.trimsec # Trimsec assumed to be the same for all frames of a given amp
+            biassec = f1.biassec # Biassec assumed to be the same for all frames of a given amp
             print ('**************************')
             print ('* MAKE ERROR FRAME FOR '+sp+' *')
             print ('**************************')
