@@ -887,7 +887,7 @@ def basicred( redux_dir, basic = False, dividepf = False,
     print ('*************************')
 
     #holds the VIRUS frames for all of the data 
-    vframes, first_run = initial_setup ( file_loc_dir, redux_dir, DIR_DICT )
+    vframes, first_run = initial_setup ( redux_dir )
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
