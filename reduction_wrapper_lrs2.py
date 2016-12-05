@@ -839,9 +839,9 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             if t.type == "sci":
                 print (t.object)
                 if t.object == s:
-                    print 'yes'
+                    print ('yes')
                 else:
-                    print 'no'
+                    print ('no')
         spfr = [t for t in tframes if t.type == "sci" and t.object == s ]
         sfr  = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and t.object == s]
         spframes_lis.append(spfr)
