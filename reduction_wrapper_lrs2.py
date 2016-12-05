@@ -86,6 +86,7 @@ if basic:
     subtractdark    = subDarks
     masterarc       = True  
     mastertrace     = True 
+    sort_sci        = True
 else:
     rmcosmics       = False
     fix_chan        = False
@@ -94,6 +95,7 @@ else:
     masterdark      = False
     masterarc       = False  
     mastertrace     = False
+    sort_sci        = False
 
 # This makes sure that the redux folder is only overwritten if the user chooses to run basic reduction
 # If you user only wants to run deformer, skysubtract, fiberextract, or mkcube it used the data in redux 
