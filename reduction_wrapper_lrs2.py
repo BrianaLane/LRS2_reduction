@@ -132,6 +132,9 @@ sci_dir  = "sci"
 cmp_dir  = "cmp"
 drk_dir  = "drk"
 
+# Dictionary for looping through directory names
+DIR_DICT     = {  0:zro_dir, 1:drk_dir, 2:cmp_dir, 3:flt_dir, 4:sci_dir } 
+
 ##########################
 # Building Spec Libaries #
 ##########################
@@ -840,7 +843,6 @@ def initial_setup ( redux_dir = None):
     #########################################
     #dictionary of data type folders 
     file_loc_dir = [  zframes,   dframes,   lframes,   fframes,   sframes ] # Should match order of dictionary, otherwise there will be mismatches
-    DIR_DICT     = {  0:zro_dir, 1:drk_dir, 2:cmp_dir, 3:flt_dir, 4:sci_dir } # Dictionary for looping through directory names
 
     # Loop through the file location directories     
     for i in xrange ( len ( file_loc_dir ) ):
