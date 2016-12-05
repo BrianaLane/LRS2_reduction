@@ -49,6 +49,8 @@ elif LRS2_spec == 'R':
 else:
     sys.exit('You need to choose either R or B for LRS2_spec')
 
+print (sci_objects)
+
 ##################################################
 # Setting CUREBIN and check LRS2 defined in CURE #
 ##################################################
