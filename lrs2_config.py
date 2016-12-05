@@ -18,15 +18,10 @@ LRS2_spec    	= 'B' 					#choose R or B only
 #path and name of the folder where reduction is run - NOTE: this folder is created by the script so the path has to exit but the folder does not
 redux_dir       = "/home/04195/bindahl/shela_z4_731"	
 #path to date folder containing raw data 
-date_folder     = "/work/03946/hetdex/maverick/20160731"			
-
-zro_folder      = ["lrs20000018",]		#[need]   folders containing raw bias images 
-drk_folder		= []					#[opt]    folders containing darks for science frames
-Hg_folder       = ["lrs20000013",]		#[need]   folders containing raw Hg arc lamp images 
-FeAr_folder     = []					#[need]   folders containing raw FeAr arc lamp images
-Cd_folder       = ["lrs20000014",]		#[only-B] folders containing raw Cd arc lamp images 
-flt_folder      = ["lrs20000016",]		#[need]   folders containing raw flat images (LRS2-R use Qth) (LRS2-B use LDLS)
-sci_folder      = ["lrs20000021",]		#[need]   folders containing the science observations for that night 
+date_folder     = "/work/03946/hetdex/maverick/20160731"	
+#Choose science objects from this night to reduce (These names can be found in the header keywork OBJECT)
+#If left as empty list all science objects from that night will be reduced. 
+sci_objects 	= ['SHELA_z4gal_0503678',]	
 
 configdir       = "/home/04195/bindahl/LRS2_reduction/lrs2_config"	#path to lrs2_config folder
 
@@ -50,6 +45,7 @@ CLEAN_AFTER_DONE = True 	#If true it will delete intermediate reduction files fo
 #------------#
 # basic opts #
 #------------#
+subDarks 		= False			#[True/False] If True darks will be subtracted from science images (default: False)
 dividePixFlt 	= False			#[True/False] If True images will be divided by pixel flats (default: False)
 rmCosmics	 	= True  		#[True/False] If True the program L.A.Cosmic is used to eliminate cosmic rays (default: True)
 

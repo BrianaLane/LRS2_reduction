@@ -359,23 +359,21 @@ def subtractbias(frames, masterbiasname, amp):
 
     return command
 
-def subtractdark(frames, masterdarkname, amp):
+def subtractdark(frames, masterdarkname, drk_scale, amp):
         
     filenames = [op.join ( f.origloc, f.actionbase[amp] + f.basename + '_' + f.ifuslot + amp + '_' + f.type + '.fits') for f in frames]
-    exptimes  = [ f.exptime for f in frames ]
-
-    command_2 = 'subtractfits -p '' -f %s' % ( mastername ) 
         
-    for i in xrange(len(filenames)):
-        command_1 = 'multiplyfits -p d%s_ -c %s' % ( exptimes[i],exptimes[i] ) 
-        command_1 = command_1 + ' ' + masterdarkname
-        
-        run_cure_command( command_1, 0 )
+    #scale the masterdark to the exposure time of the science frames
+    command_1 = 'multiplyfits -p d%s_ -c %s' % ( drk_scale,drk_scale ) 
+    command_1 = command_1 + ' ' + masterdarkname    
+    run_cure_command( command_1, 0 )
 
-        command_2 = command_2 + ' ' + filenames[i]
-        run_cure_command( command_2, 0 )
+    #subtract the scaled masterdark from the science frames 
+    command_2 = 'subtractfits -p '' -f %s' % ( masterdarkname ) 
+    command_2 = command_2 + ' ' + filenames
+    run_cure_command( command_2, 0 )
 
-    return command
+    return command_2
     
 
 def meanbiasfits(amp, specid, dest_dir, basename , opts, frames):
@@ -803,8 +801,9 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
     #------------#
     # drk frames #
     #------------#
-    if sub_darks:
+    if subDarks:
         dframes  = [t for t in tframes if t.type == "drk" ] # gives dark frames
+        drk_exptime = list(set([float(d.exptime) for d in dframes]))
     else:
         dframes  = []
 
@@ -839,6 +838,7 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
 
     spframes = [j for i in spframes_lis for j in i] # gives just "sci" frames with correct LRS2_spec pointing
     sframes  = [j for i in sframes_lis  for j in i] # gives just "sci" frames with any pointing
+    sci_exptime = list(set([float(s.exptime) for s in sframes]))
 
     #Check that data is correct
     if len(spframes) == 0:
@@ -941,31 +941,29 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
             print ('**************************')
             print ('* BUILD MASTERBIAS FOR '+sp+' *')
             print ('**************************')
-            vframesselect  = [v for v in tframes if v.type == "zro" and v.specid == ucam] 
-            meanbiasfits   ( sp, ucam, redux_dir, 'masterbias', meanfitsopts, vframesselect ) # meanfits for masterbias for unique specid 
+            meanbiasfits   ( sp, ucam, redux_dir, 'masterbias', meanfitsopts, zframes ) # meanfits for masterbias for unique specid 
 
             print ('*****************************')
             print ('* SUBTRACT MASTERBIAS FOR '+sp+' *')
             print ('*****************************')
             masterbiasname = op.join ( redux_dir, 'masterbias' + '_' + ucam + '_' + sp + '.fits' ) 
-            oframesselect  = [o for o in oframes if o.specid == ucam]
-            subtractbias   ( oframesselect, masterbiasname, sp) # for all frames
+            subtractbias   ( oframes, masterbiasname, sp) # for all frames
 
             # Create Master Dark Frames
             if masterdark:
                 print ('********************************************')
-                print ('* BUILDING MASTERDARK FOR SCI FRAMES FOR '+sp+' *')
+                print ('* BUILDING MASTERDARK and SUBTRACTING FROM SCI FRAMES FOR '+sp+' *')
                 print ('********************************************')
-                dframesselect = [d for d in dframes if d.specid == ucam] 
-                meandarkfits ( sp, ucam, redux_dir, 'masterdark', meanfitsopts, dframesselect ) # meanfits for masterdark for unique specid
+                for e in sci_exptime:
+                    close_drk = min(drk_exptime, key=lambda x:abs(x-e))
+                    dframesselect = [d for d in dframes if d.exptime == close_drk] 
+                    meandarkfits ( sp, ucam, redux_dir, 'masterdark_'+close_drk+'sec', meanfitsopts, dframesselect ) # meanfits for masterdark for unique specid
                
-                #Subtracts Master Dark from Science Frames  
-                print ('***************************************')
-                print ('* SUBTRACTING DARKS FROM SCI FRAMES '+sp+' *')
-                print ('***************************************')
-                sframesselect = [s for s in sframes if s.specid == ucam] 
-                masterdarkname = op.join ( redux_dir, 'masterdark' + '_' + ucam + '_' + sp + '.fits' )
-                subtractdark ( sframesselect, masterdarkname, sp) # for sci frames 
+                    #Subtracts Master Dark from Science Frames  
+                    scale_drk = e/close_drk
+                    sframesselect = [s for s in sframes if s.exptime == e] 
+                    masterdarkname = op.join ( redux_dir, 'masterdark_'+close_drk+'sec' + '_' + ucam + '_' + sp + '.fits' )
+                    subtractdark ( sframesselect, masterdarkname, scale_drk, sp) # for sci frames 
 
                 
         print ('*******************************************')
@@ -1017,7 +1015,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         for side in SPECBIG:
             for lamp in LAMP_DICT.values():
                 #Creates a masterarc frame for each arc lamp in LAMP_DICT
-                lframesselect = [l for l in lframes if l.specid == ucam and l.object == lamp]
+                lframesselect = [l for l in lframes if l.object == lamp]
                 #If more than one image for that lamp take median image 
                 if len(lframesselect)>1:
                     meanlampfits(side, ucam, lamp, redux_dir, 'masterarc' , arcopts, lframesselect) 
@@ -1173,8 +1171,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
         for side in SPECBIG:
             distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
             fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
-            sframesselect = [s for s in sframes if s.specid == ucam]
-            subtractsky(sframesselect,side,distmodel,fibermodel,subskyopts)
+            subtractsky(sframes,side,distmodel,fibermodel,subskyopts)
 
     # Run fiberextract
     if fiberextract:  
@@ -1212,21 +1209,17 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
                     wave_range = '8324,10565'
                     dw = '1.129'
 
-                sframesselect = [s for s in sframes if s.specid == ucam]
-
                 distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
-                fibextract_Resample(sframesselect,base,side,distmodel,fibermodel,wave_range,dw,fibextractopts) 
+                fibextract_Resample(sframes,base,side,distmodel,fibermodel,wave_range,dw,fibextractopts) 
         else:
             print ('    +++++++++++++++++++++++++++++++')
             print ('     Extraction Without Resampling ')
             print ('    +++++++++++++++++++++++++++++++')
             for side in SPECBIG:   
-                sframesselect = [s for s in sframes if s.specid == ucam]
-
                 distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
-                fibextract(sframesselect,base,side,distmodel,fibermodel,fibextractopts)
+                fibextract(sframes,base,side,distmodel,fibermodel,fibextractopts)
 
     #CURE saves these files from deformer outside of the redux directory for some reason.
     #This moves them inside of the redux directory.
