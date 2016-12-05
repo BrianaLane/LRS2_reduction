@@ -75,15 +75,6 @@ else:
 # Defining which functions to run #
 ###################################
 
-#dark folder does not get used if there are not darks
-#if there are no darks it sets drk_folder to zro_folder for the script to run.
-#nothing is done with these fake dark files
-if len(drk_folder) == 0:
-    ifdarks = False
-    drk_folder = zro_folder
-else: 
-    ifdarks == True
-
 #if basic reduction is run need to specify specific routines to run 
 # divide pixel flat and masterdark are not being used now
 if basic:
@@ -91,8 +82,8 @@ if basic:
     fix_chan        = True
     dividepf        = dividePixFlt
     normalize       = True
-    masterdark      = ifdarks
-    subtractdark    = ifdarks
+    masterdark      = subDarks
+    subtractdark    = subDarks
     masterarc       = True  
     mastertrace     = True 
 else:

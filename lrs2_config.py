@@ -17,13 +17,15 @@ LRS2_spec    	= 'B' 					#choose R or B only
 
 #path and name of the folder where reduction is run - NOTE: this folder is created by the script so the path has to exit but the folder does not
 redux_dir       = "/home/04195/bindahl/shela_z4_731"	
+
 #path to date folder containing raw data 
 date_folder     = "/work/03946/hetdex/maverick/20160731"	
+
 #Choose science objects from this night to reduce (These names can be found in the header keywork OBJECT)
 #If left as empty list all science objects from that night will be reduced. 
 sci_objects 	= ['SHELA_z4gal_0503678',]	
 
-configdir       = "/home/04195/bindahl/LRS2_reduction/lrs2_config"	#path to lrs2_config folder
+configdir       = "/home/04195/bindahl/LRS2_reduction/lrs2_config"	#path to your lrs2_config folder
 
 #*******************************#
 # choose reduction steps to run #
