@@ -643,6 +643,7 @@ def initial_setup ( redux_dir = None):
     keywords for other functions as well as time of the observation and basename
     '''
 
+    print (redux_dir)
     print (sci_objects)
 
     #########################
