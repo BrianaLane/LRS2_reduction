@@ -838,6 +838,10 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         for t in tframes: 
             if t.type == "sci":
                 print (t.object)
+                if t.object == s:
+                    print 'yes'
+                else:
+                    print 'no'
         spfr = [t for t in tframes if t.type == "sci" and t.object == s ]
         sfr  = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and t.object == s]
         spframes_lis.append(spfr)
@@ -845,7 +849,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ("There were "+str(len(sfr))+" science frames found for "+s)
         if len(sfr) == 0:
             print ("There were no science frames with object name: "+s)
-            sys.exit("These are the object names found for the night: "+str(sci_obj_names))
+            sys.exit("These are the object names found for "+op.basename(date_folder)+": "+str(sci_obj_names))
 
     spframes_orig = [j for i in spframes_lis for j in i] # gives just "sci" frames with correct LRS2_spec pointing
     sframes_orig  = [j for i in sframes_lis  for j in i] # gives just "sci" frames with any pointing
