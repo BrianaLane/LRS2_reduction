@@ -49,8 +49,6 @@ elif LRS2_spec == 'R':
 else:
     sys.exit('You need to choose either R or B for LRS2_spec')
 
-print (sci_objects)
-
 ##################################################
 # Setting CUREBIN and check LRS2 defined in CURE #
 ##################################################
@@ -632,7 +630,7 @@ def extend_trace_start(data,start_col,window):
     #returns the chip array with this correction 
     return data          
 
-def initial_setup ( redux_dir = None):
+def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     '''
     Running the initial setup which includes:
     1) Building a standard reduction folder structure
@@ -889,7 +887,7 @@ def initial_setup ( redux_dir = None):
                         
     return vframes, first_run
 
-def basicred( redux_dir, basic = False, dividepf = False,
+def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
               normalize = False, masterdark = False, masterarc = False, mastertrace = False):
     '''
     Running the basic reduction which includes:
@@ -911,10 +909,8 @@ def basicred( redux_dir, basic = False, dividepf = False,
     print ('* BUILDING IMAGE FRAMES *')
     print ('*************************')
 
-    print (sci_objects)
-
     #holds the VIRUS frames for all of the data 
-    vframes, first_run = initial_setup ( redux_dir )
+    vframes, first_run = initial_setup ( DIR_DICT, sci_objects, redux_dir )
 
     zframes  = [v for v in vframes if v.type == "zro" ] # gives just "zro" frames
     dframes  = [v for v in vframes if v.type == "drk" ] # gives just "drk" frames
@@ -1402,7 +1398,7 @@ def basicred( redux_dir, basic = False, dividepf = False,
     return vframes
     
 def main():
-    frames = basicred( redux_dir, basic = basic, dividepf = dividepf,
+    frames = basicred( DIR_DICT, sci_objects, redux_dir, basic = basic, dividepf = dividepf,
                       normalize = normalize, masterdark = masterdark, masterarc = masterarc, mastertrace = mastertrace )                 
     
 if __name__ == '__main__':
