@@ -191,15 +191,14 @@ class VirusFrame:
             self.actionbase = {}
             for amp in SPEC:  
                 self.actionbase[amp] = ''   
-                #rootname          = op.join (self.origloc, self.basename + '_' + self.ifuslot + amp + '_' + self.type + '.fits' )
-                #hdulist           = pyfits.open ( rootname )
                 #self.trimsec[amp] = "\"" + re.split('[\[ \] ]',hdulist[0].header['TRIMSEC'])[1] + "\""
                 #self.biassec[amp] = "\"" + re.split('[\[ \] ]',hdulist[0].header['BIASSEC'])[1] + "\""     
-           
 
             self.actionbase["L"] = initial_base  
             self.actionbase["R"] = initial_base  
-            
+
+            rootname          = op.join (self.origloc, self.basename + '_' + self.ifuslot + 'LL_' + self.type + '.fits' )
+            hdulist           = pyfits.open ( rootname )       
             self.specid      = str(hdulist[0].header['SPECID']) 
             self.orggain     = hdulist[0].header['GAIN']
             self.orgrdnoise  = hdulist[0].header['RDNOISE']
