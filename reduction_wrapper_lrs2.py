@@ -824,9 +824,7 @@ def initial_setup ( redux_dir = None):
     # sci frames #
     #------------#
     allsframes  = [a for a in aframes if a.type == "sci" and (a.specid == ucam)]
-    sci_obj_names = []
-    for s in allsframes:
-        sci_obj_names.append(s.object)
+    sci_obj_names = [s.object for s in allsframes]
     sci_obj_names = list(set(sci_obj_names))
 
     if len(sci_objects) == 0:
