@@ -628,7 +628,7 @@ def extend_trace_start(data,start_col,window):
     #returns the chip array with this correction 
     return data          
 
-def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
+def initial_setup ( redux_dir = None):
     '''
     Running the initial setup which includes:
     1) Building a standard reduction folder structure
@@ -864,7 +864,7 @@ def initial_setup ( file_loc_dir = None, redux_dir = None, DIR_DICT = None):
                         
     return vframes, first_run
 
-def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False,
+def basicred( redux_dir, basic = False, dividepf = False,
               normalize = False, masterdark = False, masterarc = False, mastertrace = False):
     '''
     Running the basic reduction which includes:
@@ -1367,7 +1367,7 @@ def basicred( file_loc_dir, redux_dir, DIR_DICT, basic = False, dividepf = False
     return vframes
     
 def main():
-    frames = basicred( file_loc_dir, redux_dir, DIR_DICT, basic = basic, dividepf = dividepf,
+    frames = basicred( redux_dir, basic = basic, dividepf = dividepf,
                       normalize = normalize, masterdark = masterdark, masterarc = masterarc, mastertrace = mastertrace )                 
     
 if __name__ == '__main__':
