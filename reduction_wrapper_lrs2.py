@@ -191,8 +191,6 @@ class VirusFrame:
             self.actionbase = {}
             for amp in SPEC:  
                 self.actionbase[amp] = ''   
-                #self.trimsec[amp] = "\"" + re.split('[\[ \] ]',hdulist[0].header['TRIMSEC'])[1] + "\""
-                #self.biassec[amp] = "\"" + re.split('[\[ \] ]',hdulist[0].header['BIASSEC'])[1] + "\""     
 
             self.actionbase["L"] = initial_base  
             self.actionbase["R"] = initial_base  
@@ -657,9 +655,9 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                 shutil.rmtree ( redux_dir )
                 os.mkdir ( redux_dir )
 
-    print ('**************************************************')
-    print ('* SEARCHING AND SORTING ALL FILES IN DATE FOLDER *')
-    print ('**************************************************')
+    print ('    ++++++++++++++++++++++++++++++++++++++++++++++++++')
+    print ('    + Searching and Sorting All Files in Date Folder +')
+    print ('    ++++++++++++++++++++++++++++++++++++++++++++++++++')
 
     ####################################################
     # Build VIRUS frames for all images in date folder #
@@ -850,7 +848,10 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     #Check that data is correct
     if len(spframes_orig) == 0:
         print ("WARNING: Science frames were found for you science objects but not with LRS2-"+LRS2_spec+" pointings - these may just be sky frames")
-    
+
+    print ('    +++++++++++++++++++++++++++++++++++++++++++')
+    print ('    + Copying Frames Into Directory Structure +')
+    print ('    +++++++++++++++++++++++++++++++++++++++++++')
     #########################################
     # Copying frames to directory structure #
     #########################################
@@ -873,7 +874,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             if all_copy:
                 #must copy all file to directories first
                 for f in file_loc_dir[i]:  
-                    shutil.copy ( f.filename, op.join ( redux_dir, DIR_DICT[i] ) )
+                    for amp in SPEC: 
+                        shutil.copy ( op.join ( f.origloc, f.actionbase[amp] + f.basename + '_' + f.ifuslot + amp + '_' + f.type + '.fits'), op.join ( redux_dir, DIR_DICT[i] ) )
                 for f in file_loc_dir[i]:        
                     a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
                     vframes.append(copy.deepcopy(a))
@@ -1213,9 +1215,9 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             base = 'Spses'
 
         if wl_resample:
-            print ('    ++++++++++++++++++++++++++')
-            print ('     Resampling in Wavelength ')
-            print ('    ++++++++++++++++++++++++++')
+            print ('    ++++++++++++++++++++++++++++')
+            print ('    + Resampling in Wavelength + ')
+            print ('    ++++++++++++++++++++++++++++')
             for side in SPECBIG:
                 #for each channel selects correct wavlength range and dw
                 if (LRS2_spec == 'B') and (side == 'L'):
@@ -1235,9 +1237,9 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
                 fibextract_Resample(sframes,base,side,distmodel,fibermodel,wave_range,dw,fibextractopts) 
         else:
-            print ('    +++++++++++++++++++++++++++++++')
-            print ('     Extraction Without Resampling ')
-            print ('    +++++++++++++++++++++++++++++++')
+            print ('    +++++++++++++++++++++++++++++++++')
+            print ('    + Extraction Without Resampling +')
+            print ('    +++++++++++++++++++++++++++++++++')
             for side in SPECBIG:   
                 distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
