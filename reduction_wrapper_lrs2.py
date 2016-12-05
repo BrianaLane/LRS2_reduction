@@ -1149,7 +1149,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         for s in sci_objects:
             os.mkdir ( op.join( redux_dir, sci_dir, s ))
         for s in sframes:
-            os.mv (s.filename, op.join( s.filename, s.object ) )
+            shutil.move (s.filename, op.join( s.filename, s.object ) )
             
     # Run Deformer
     if run_deformer:
