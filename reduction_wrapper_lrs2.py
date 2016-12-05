@@ -884,7 +884,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
                     vframes.append(copy.deepcopy(a))
                         
-    return vframes, first_run, ucam
+    return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP
 
 def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
               normalize = False, masterdark = False, masterarc = False, mastertrace = False):
@@ -909,7 +909,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     print ('*************************')
 
     #holds the VIRUS frames for all of the data 
-    vframes, first_run, ucam = initial_setup ( DIR_DICT, sci_objects, redux_dir )
+    vframes, first_run, ucam, LAMP_DICT, FLT_LAMP = initial_setup ( DIR_DICT, sci_objects, redux_dir )
 
     #inital reference frame
     f1 = vframes[0]
