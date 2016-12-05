@@ -834,16 +834,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     sframes_lis = []
     spframes_lis = []
     for s in sci_objects:
-        print (s)
-        for t in tframes: 
-            if t.type == "sci":
-                print (t.object)
-                if t.object == s:
-                    print ('yes')
-                else:
-                    print ('no')
         spfr = [t for t in tframes if t.type == "sci" and t.object == s ]
-        sfr  = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and t.object == s]
+        sfr  = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and a.object == s]
         spframes_lis.append(spfr)
         sframes_lis.append(sfr)
         print ("There were "+str(len(sfr))+" science frames found for "+s)
