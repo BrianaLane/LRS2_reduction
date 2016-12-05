@@ -936,17 +936,17 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             print ('**************************')
             print ('* MAKE ERROR FRAME FOR '+sp+' *')
             print ('**************************')
-            mkerrorframe ( tframes, sp )               # for all frames
+            mkerrorframe ( vframes, sp )               # for all frames
 
             print ('***************************')
             print ('* SUBTRACT OVERSCAN FOR '+sp+' *')
             print ('***************************')
-            subtractoverscan( biassec, tframes, sp )   # for all frames
+            subtractoverscan( biassec, vframes, sp )   # for all frames
 
             print ('*****************************')
             print ('* EXTRACT DATA REGION FOR '+sp+' *')
             print ('*****************************')
-            extractfits ( trimsec, tframes, sp )       # for all frames
+            extractfits ( trimsec, vframes, sp )       # for all frames
 
             # Remove cosmic rays using L.A.cosmic
             if rmcosmics:
