@@ -49,8 +49,6 @@ elif LRS2_spec == 'R':
 else:
     sys.exit('You need to choose either R or B for LRS2_spec')
 
-print (sci_objects)
-
 ##################################################
 # Setting CUREBIN and check LRS2 defined in CURE #
 ##################################################
@@ -644,6 +642,9 @@ def initial_setup ( redux_dir = None):
     5) Creating class variable, VirusFrame, for each file which records
     keywords for other functions as well as time of the observation and basename
     '''
+
+    print (sci_objects)
+
     #########################
     # Build redux directory #
     #########################
