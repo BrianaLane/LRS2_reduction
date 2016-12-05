@@ -909,6 +909,9 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     #holds the VIRUS frames for all of the data 
     vframes, first_run = initial_setup ( DIR_DICT, sci_objects, redux_dir )
 
+    #inital reference frame
+    f1 = vframes[0]
+
     zframes  = [v for v in vframes if v.type == "zro" ] # gives just "zro" frames
     dframes  = [v for v in vframes if v.type == "drk" ] # gives just "drk" frames
     lframes  = [v for v in vframes if v.type == "cmp" ] # gives just "cmp" frames
@@ -916,6 +919,8 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     sframes  = [v for v in vframes if v.type == "sci" ] # gives just "sci" frames
     cframes  = fframes + lframes # gives "flt" and "cmp" frames
     oframes  = cframes + sframes + dframes # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
+
+    print (len(zframes),len(dframes),len(lframes),len(fframes),len(sframes))
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
