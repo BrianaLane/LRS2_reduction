@@ -657,6 +657,10 @@ def initial_setup ( redux_dir = None):
                 shutil.rmtree ( redux_dir )
                 os.mkdir ( redux_dir )
 
+    print ('**************************************************')
+    print ('* SEARCHING AND SORTING ALL FILES IN DATE FOLDER *')
+    print ('**************************************************')
+
     ####################################################
     # Build VIRUS frames for all images in date folder #
     ####################################################
@@ -667,7 +671,7 @@ def initial_setup ( redux_dir = None):
         temp, temp1, temp2 = op.basename ( f ).split('_')
         amp                = temp1[3:5]
         if amp == "LL":
-            a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f ) ) ) 
+            a = VirusFrame( f ) 
             aframes.append(copy.deepcopy(a)) 
 
     #################
@@ -702,9 +706,9 @@ def initial_setup ( redux_dir = None):
     #define cal lamps used based on SPECID   
     if ucam == '501':
         LAMP_DICT = {0:'Hg',1:'Cd'}
-        FLT_LAMP = 'Qth'
-    if (ucam == '502'):
         FLT_LAMP = 'ldls'
+    if (ucam == '502'):
+        FLT_LAMP = 'Qth'
         LAMP_DICT = {0:'Hg',1:'FeAr'}
     if (ucam == '503'):
         FLT_LAMP = 'ldls'
@@ -720,17 +724,19 @@ def initial_setup ( redux_dir = None):
     #------------#
     # zro frames #
     #------------#
-    zframes   = [t for t in tframes if t.type == "zro" ] # gives just "zro" frames
-    if len(zframes) == 0:
+    zframes_orig   = [t for t in tframes if t.type == "zro" ] # gives just "zro" frames
+
+    if len(zframes_orig) == 0:
         sys.exit("No biases were found for this night")
+    print ('Found '+len(zframes_orig)+' zro frames')
 
     #------------#
     # flt frames #
     #------------#
-    fframes   = [t for t in tframes if t.type == "flt" and t.object == FLT_LAMP] # gives just "flt" frames
+    fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == FLT_LAMP] # gives just "flt" frames
 
     #if old first run data and LRS2-R - need to use long Qth exposures in config
-    if (ucam == '501') and first_run:
+    if (ucam == '502') and first_run:
         print ('Including long exposure Qth flats for far-red channel reduction')
         longQth_files = glob.glob(configdir+'/FR_longCals/long_Qth'+fit_path)
         for f in longQth_files:            
@@ -738,17 +744,20 @@ def initial_setup ( redux_dir = None):
             amp                = temp1[3:5]
             if amp == "LL":
                 a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f ) ) ) 
-                fframes.append(copy.deepcopy(a)) 
+                fframes_orig.append(copy.deepcopy(a)) 
 
-    if len(fframes) == 0:
+    if len(fframes_orig) == 0:
         sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
+    print ('Found '+len(fframes_orig)+' '+FLT_LAMP+' flt frames')
 
     #-----------#
     # Hg frames #
     #-----------#
     hgframes  = [t for t in tframes if t.type == "cmp" and t.object == "Hg"] # gives just "Hg" frames
+
     if len(hgframes) == 0:
         sys.exit("No Hg lamp exposures were found for this night")
+    print ('Found '+len(hgframes)+' Hg frames')
 
     #----------------#
     # 501 cmp frames #
@@ -758,8 +767,21 @@ def initial_setup ( redux_dir = None):
 
         if len(cdframes) == 0:
             sys.exit("No Cd lamp exposures were found for this night")
+        print ('Found '+len(cdframes)+' Cd frames')
 
-        lframes  = hgframes + cdframes # gives just "cmp" frames
+        lframes_orig  = hgframes + cdframes # gives just "cmp" frames
+
+    #----------------#
+    # 502 cmp frames #
+    #----------------#
+    if ucam == '502':
+        faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "FeAr" frames
+        
+        if len(faframes) == 0:
+            sys.exit("No FeAr lamp exposures were found for this night") 
+        print ('Found '+len(faframes)+' FeAr frames')
+        
+        lframes_orig  = hgframes + faframes # gives just "cmp" frames
 
         #if old first run data and LRS2-R - need to use long Qth exposures in config
         print ('Including long exposure FeAr comps for far-red channel reduction')
@@ -769,43 +791,35 @@ def initial_setup ( redux_dir = None):
             amp                = temp1[3:5]
             if amp == "LL":
                 a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f ) ) ) 
-                lframes.append(copy.deepcopy(a)) 
-
-    #----------------#
-    # 502 cmp frames #
-    #----------------#
-    if ucam == '502':
-        faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "FeAr" frames
-        if len(faframes) == 0:
-            sys.exit("No FeAr lamp exposures were found for this night")
-        lframes  = hgframes + faframes # gives just "cmp" frames
+                lframes_orig.append(copy.deepcopy(a)) 
 
     #----------------#
     # 503 cmp frames #
     #----------------#
     if ucam == '503':
         cdframes = [t for t in tframes if t.type == "cmp" and t.object == "Cd"] # gives just "Cd" frames
+
         if len(cdframes) == 0:
             sys.exit("No Cd lamp exposures were found for this night")
+        print ('Found '+len(cdframes)+' Cd frames')
+
         faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "Cd" frames
+
         if len(faframes) == 0:
             sys.exit("No FeAr lamp exposures were found for this night")
-        lframes  = hgframes + cdframes + faframes # gives just "cmp" frames
+        print ('Found '+len(faframes)+' FeAr frames')
+
+        lframes_orig  = hgframes + cdframes + faframes # gives just "cmp" frames
 
     #------------#
     # drk frames #
     #------------#
     if subDarks:
-        dframes  = [t for t in tframes if t.type == "drk" ] # gives dark frames
-        drk_exptime = list(set([float(d.exptime) for d in dframes]))
+        dframes_orig  = [t for t in tframes if t.type == "drk" ] # gives dark frames
+        print ('Found '+len(dframes_orig)+' drk frames')
+        drk_exptime = list(set([float(d.exptime) for d in dframes_orig]))
     else:
-        dframes  = []
-
-    #------------#
-    # combo sets #
-    #------------#
-    cframes  = fframes + lframes # gives "flt" and "cmp" frames
-    oframes  = cframes + sframes + dframes # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
+        dframes_orig  = []
 
     #------------#
     # sci frames #
@@ -826,23 +840,25 @@ def initial_setup ( redux_dir = None):
         sfr  = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and t.object == s]
         spframes_lis.append(spfr)
         sframes_lis.append(sfr)
+        print ("There were "+len(sfr)+" science frames found for "+s)
         if len(sfr) == 0:
             print ("There were no science frames with object name: "+s)
             sys.exit("These are the object names found for the night: "+sci_obj_names)
 
-    spframes = [j for i in spframes_lis for j in i] # gives just "sci" frames with correct LRS2_spec pointing
-    sframes  = [j for i in sframes_lis  for j in i] # gives just "sci" frames with any pointing
-    sci_exptime = list(set([float(s.exptime) for s in sframes]))
+    spframes_orig = [j for i in spframes_lis for j in i] # gives just "sci" frames with correct LRS2_spec pointing
+    sframes_orig  = [j for i in sframes_lis  for j in i] # gives just "sci" frames with any pointing
+    sci_exptime = list(set([float(s.exptime) for s in sframes_orig]))
 
     #Check that data is correct
-    if len(spframes) == 0:
+    if len(spframes_orig) == 0:
         print ("WARNING: Science frames were found for you science objects but not with LRS2-"+LRS2_spec+" pointings - these may just be sky frames")
     
     #########################################
     # Copying frames to directory structure #
     #########################################
+    vframes = []
     #dictionary of data type folders 
-    file_loc_dir = [  zframes,   dframes,   lframes,   fframes,   sframes ] # Should match order of dictionary, otherwise there will be mismatches
+    file_loc_dir = [  zframes_orig,   dframes_orig,   lframes_orig,   fframes_orig,   sframes_orig ] # Should match order of dictionary, otherwise there will be mismatches
 
     # Loop through the file location directories     
     for i in xrange ( len ( file_loc_dir ) ):
@@ -862,7 +878,14 @@ def initial_setup ( redux_dir = None):
                 if all_copy:
                     #must copy all file to directories first
                     for f in file_loc:  
-                        shutil.copy ( f, op.join ( redux_dir, DIR_DICT[i] ) )
+                        shutil.copy ( f.filename, op.join ( redux_dir, DIR_DICT[i] ) )
+                    for f in file_loc:        
+                        a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
+                        vframes.append(copy.deepcopy(a))
+                else: 
+                    for f in file_loc:
+                        a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
+                        vframes.append(copy.deepcopy(a))
                         
     return vframes, first_run
 
@@ -890,6 +913,14 @@ def basicred( redux_dir, basic = False, dividepf = False,
 
     #holds the VIRUS frames for all of the data 
     vframes, first_run = initial_setup ( redux_dir )
+
+    zframes  = [v for v in vframes if v.type == "zro" ] # gives just "zro" frames
+    dframes  = [v for v in vframes if v.type == "drk" ] # gives just "drk" frames
+    lframes  = [v for v in vframes if v.type == "cmp" ] # gives just "cmp" frames
+    fframes  = [v for v in vframes if v.type == "flt" ] # gives just "flt" frames
+    sframes  = [v for v in vframes if v.type == "sci" ] # gives just "sci" frames
+    cframes  = fframes + lframes # gives "flt" and "cmp" frames
+    oframes  = cframes + sframes + dframes # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
