@@ -737,7 +737,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
             if amp == "LL":
-                a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f ) ) ) 
+                a = VirusFrame( f ) 
                 fframes_orig.append(copy.deepcopy(a)) 
 
     if len(fframes_orig) == 0:
@@ -784,7 +784,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
             if amp == "LL":
-                a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f ) ) ) 
+                a = VirusFrame( op.join( f )) 
                 lframes_orig.append(copy.deepcopy(a)) 
 
     #----------------#
