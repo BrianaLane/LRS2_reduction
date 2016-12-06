@@ -847,9 +847,10 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     if len(spframes_orig) == 0:
         print ("WARNING: Science frames were found for you science objects but not with LRS2-"+LRS2_spec+" pointings - these may just be sky frames")
 
-    print ('    +++++++++++++++++++++++++++++++++++++++++++')
-    print ('    + Copying Frames Into Directory Structure +')
-    print ('    +++++++++++++++++++++++++++++++++++++++++++')
+    if all_copy:
+        print ('    +++++++++++++++++++++++++++++++++++++++++++')
+        print ('    + Copying Frames Into Directory Structure +')
+        print ('    +++++++++++++++++++++++++++++++++++++++++++')
     #########################################
     # Copying frames to directory structure #
     #########################################
@@ -879,7 +880,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     vframes.append(copy.deepcopy(a))
             else: 
                 for f in file_loc_dir[i]:
-                    a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
+                    a = VirusFrame( f.filename ) 
                     vframes.append(copy.deepcopy(a))
                         
     return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP
