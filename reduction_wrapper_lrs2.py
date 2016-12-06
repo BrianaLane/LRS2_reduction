@@ -1311,7 +1311,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 mkcube(IFUfile,ditherfile,outname,diffAtmRef,cubeopts) 
 
             #cd back into the reduction directory 
-            os.chdir('../../')
+            os.chdir('../../../')
 
     # Run collapse cube
     if collapseCube:
