@@ -732,7 +732,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     #if old first run data and LRS2-R - need to use long Qth exposures in config
     if (ucam == '502') and first_run:
         print ('Including long exposure Qth flats for far-red channel reduction')
-        longQth_files = glob.glob(configdir+'/FR_longCals/long_Qth'+fit_path)
+        longQth_files = glob.glob(configdir+'/FR_longCals/long_Qth/exp*/lrs2/*.fits')
         for f in longQth_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
@@ -779,7 +779,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
         #if old first run data and LRS2-R - need to use long Qth exposures in config
         print ('Including long exposure FeAr comps for far-red channel reduction')
-        longFeAr_files = glob.glob(configdir+'/FR_longCals/long_FeAr'+fit_path)
+        longFeAr_files = glob.glob(configdir+'/FR_longCals/long_FeAr/exp*/lrs2/*.fits')
         for f in longFeAr_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
