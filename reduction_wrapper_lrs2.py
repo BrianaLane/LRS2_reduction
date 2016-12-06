@@ -579,11 +579,9 @@ def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
     return command
     
     
-def fibextract_Resample(frames,base,side,distmodel,fibermodel,wave_range,dw,opts):
+def fibextract_Resample(frames,distmodel,fibermodel,wave_range,dw,opts):
 
-    filenames = [(redux_dir + '/' + sci_dir + '/' + base + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in frames]
-
-    for f in filenames:
+    for f in frames:
     
         command = 'fiberextract %s -p FeR -W %s -w %s -d %s -f %s %s' %(opts,wave_range,dw,distmodel,fibermodel,f)
         
@@ -591,11 +589,9 @@ def fibextract_Resample(frames,base,side,distmodel,fibermodel,wave_range,dw,opts
 
     return command
 
-def fibextract(frames,base,side,distmodel,fibermodel,opts):
+def fibextract(frames,distmodel,fibermodel,opts):
 
-    filenames = [(redux_dir + '/' + sci_dir + '/' + base + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in frames]
-
-    for f in filenames:
+    for f in frames:
     
         command = 'fiberextract %s -x -d %s -f %s %s' %(opts,distmodel,fibermodel,f)
         
@@ -1154,7 +1150,8 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             for side in SPECBIG:
                 sname = 'pses'+s.basename+'_'+s.ifuslot+'_'+s.type+'_'+side+'.fits'
                 shutil.move (op.join(s.origloc, sname ), op.join( s.origloc, s.object ) )
-            
+                shutil.move (op.join(s.origloc, 'e.'+sname ), op.join( s.origloc, s.object ) )            
+
     # Run Deformer
     if run_deformer:
         print ('*************************************************************************')
@@ -1241,7 +1238,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
 
                 distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
-                fibextract_Resample(sframes,base,side,distmodel,fibermodel,wave_range,dw,fibextractopts) 
+                fibextract_Resample(Sfiles,distmodel,fibermodel,wave_range,dw,fibextractopts) 
         else:
             print ('    +++++++++++++++++++++++++++++++++')
             print ('    + Extraction Without Resampling +')
@@ -1249,7 +1246,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             for side in SPECBIG:   
                 distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
-                fibextract(sframes,base,side,distmodel,fibermodel,fibextractopts)
+                fibextract(Sfiles,distmodel,fibermodel,fibextractopts)
 
     #CURE saves these files from deformer outside of the redux directory for some reason.
     #This moves them inside of the redux directory.
