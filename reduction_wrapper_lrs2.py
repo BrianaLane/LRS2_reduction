@@ -572,7 +572,7 @@ def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
 
         run_cure_command( command, 0 )
         
-    [f.addbase('S', side) for f in frames]
+    #[f.addbase('S', side) for f in frames]
 
     return command
     
