@@ -81,7 +81,7 @@ if basic:
     rmcosmics       = rmCosmics 
     fix_chan        = True
     dividepf        = dividePixFlt
-    normalize       = True
+    normalize       = False
     masterdark      = subDarks
     subtractdark    = subDarks
     masterarc       = True  
