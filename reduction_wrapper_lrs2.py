@@ -566,9 +566,7 @@ def deformer(mastertrace,masterarc,linesfile,wave_range,ref_line,opts):
     
 def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
     
-    filenames = [(redux_dir + '/' + sci_dir + '/' + f.object + '/pses' + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in frames]
-
-    for f in filenames:
+    for f in framse:
         
         command = 'subtractsky %s %s -d %s -f %s %s' % (opts,skymaster,distmodel,fibermodel,f)  
 
@@ -1199,7 +1197,8 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         for side in SPECBIG:
             distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
             fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
-            subtractsky(sframes,side,distmodel,fibermodel,subskyopts)
+            Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "p*_sci_*.fits")
+            subtractsky(Sfiles,side,distmodel,fibermodel,subskyopts)
 
     # Run fiberextract
     if fiberextract:  
