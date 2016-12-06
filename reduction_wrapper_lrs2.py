@@ -566,7 +566,7 @@ def deformer(mastertrace,masterarc,linesfile,wave_range,ref_line,opts):
     
 def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
     
-    for f in framse:
+    for f in frames:
         
         command = 'subtractsky %s %s -d %s -f %s %s' % (opts,skymaster,distmodel,fibermodel,f)  
 
