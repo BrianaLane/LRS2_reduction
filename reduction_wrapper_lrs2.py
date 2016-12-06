@@ -727,11 +727,10 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     #------------#
     # flt frames #
     #------------#
-    fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == FLT_LAMP] # gives just "flt" frames
-
     #if old first run data and LRS2-R - need to use long Qth exposures in config
     if (ucam == '502') and first_run:
         print ('Including long exposure Qth flats for far-red channel reduction')
+        fframes_orig = []
         longQth_files = glob.glob(configdir+'/FR_longCals/long_Qth/exp*/lrs2/*.fits')
         for f in longQth_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
@@ -739,6 +738,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             if amp == "LL":
                 a = VirusFrame( f ) 
                 fframes_orig.append(copy.deepcopy(a)) 
+    else:
+        fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == FLT_LAMP] # gives just "flt" frames
 
     if len(fframes_orig) == 0:
         sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
@@ -777,7 +778,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         
         lframes_orig  = hgframes + faframes # gives just "cmp" frames
 
-        #if old first run data and LRS2-R - need to use long Qth exposures in config
+        #if LRS2-R need to include FeAr cmps 
         print ('Including long exposure FeAr comps for far-red channel reduction')
         longFeAr_files = glob.glob(configdir+'/FR_longCals/long_FeAr/exp*/lrs2/*.fits')
         for f in longFeAr_files:            
