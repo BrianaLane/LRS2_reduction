@@ -1151,7 +1151,9 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         for s in sci_objects:
             os.mkdir ( op.join( redux_dir, sci_dir, s ))
         for s in sframes:
-            shutil.move (op.join(s.origloc, 'pses'+s.basename), op.join( s.origloc, s.object ) )
+            for side in SPECBIG:
+                sname = 'pses'+s.basename+'_'+s.ifuslot+'_'+s.type+'_'+side+'.fits'
+                shutil.move (op.join(s.origloc, sname ), op.join( s.origloc, s.object ) )
             
     # Run Deformer
     if run_deformer:
