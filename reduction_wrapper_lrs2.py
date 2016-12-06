@@ -1318,89 +1318,90 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         print ('***************************************')
         print ('* COLLAPSING DATA CUBE TO BUILD IMAGE *')
         print ('***************************************')
-        #cd into the science directory 
-        location_prefix = redux_dir + "/" + sci_dir + "/*/" 
-        Cufiles = glob.glob(location_prefix + "CuFeR*_sci_*.fits")
+        for s in sci_objects:
+            #cd into the science directory 
+            location_prefix = redux_dir + "/" + sci_dir + "/" + s + "/" 
+            Cufiles = glob.glob(location_prefix + "CuFeR*_sci_*.fits")
 
-        #makes sure there are actually data cubes made from wavelength resampled, fiber extracted data in the sci directory 
-        #If data cubes were made from fiber extracted fibers that do not wl resample they do not contain WCS info needed
-        if len(Cufiles) == 0:
-            sys.exit("You must build data cubes from wavelength resampled, fiber extracted data before running collapse cube")
+            #makes sure there are actually data cubes made from wavelength resampled, fiber extracted data in the sci directory 
+            #If data cubes were made from fiber extracted fibers that do not wl resample they do not contain WCS info needed
+            if len(Cufiles) == 0:
+                sys.exit("You must build data cubes from wavelength resampled, fiber extracted data before running collapse cube")
 
-        #user defined wavelength range to collapse cube 
-        low_wave  = col_wave_range[0]
-        high_wave = col_wave_range[1]
+            #user defined wavelength range to collapse cube 
+            low_wave  = col_wave_range[0]
+            high_wave = col_wave_range[1]
 
-        #track number of cubes used in order to inform user if their values fall out of bounds and no images made
-        num_cubes = 0
+            #track number of cubes used in order to inform user if their values fall out of bounds and no images made
+            num_cubes = 0
 
-        min_wave_set = []
-        max_wave_set = []
-        #iterate through cube files 
-        for c in Cufiles:
-            im  = pyfits.open(c)
-            hdr = im[0].header
-            dat = im[0].data
+            min_wave_set = []
+            max_wave_set = []
+            #iterate through cube files 
+            for c in Cufiles:
+                im  = pyfits.open(c)
+                hdr = im[0].header
+                dat = im[0].data
 
-            #read header for wavelength solution information
-            lenZ  = np.shape(dat)[0]
-            CRVAL = hdr['CRVAL3']                                        
-            CDELT = hdr['CDELT3']
-            Side  = hdr['CCDPOS']
+                #read header for wavelength solution information
+                lenZ  = np.shape(dat)[0]
+                CRVAL = hdr['CRVAL3']                                        
+                CDELT = hdr['CDELT3']
+                Side  = hdr['CCDPOS']
 
-            #Find the name of the channel for this data cube
-            if   (LRS2_spec == 'B') and (Side == 'L'):
-                spec_chan = 'UV'
-            elif (LRS2_spec == 'B') and (Side == 'R'):
-                spec_chan = 'orange'
-            elif (LRS2_spec == 'R') and (Side == 'L'):
-                spec_chan = 'red'
-            elif (LRS2_spec == 'R') and (Side == 'R'):
-                spec_chan = 'far-red'
+                #Find the name of the channel for this data cube
+                if   (LRS2_spec == 'B') and (Side == 'L'):
+                    spec_chan = 'UV'
+                elif (LRS2_spec == 'B') and (Side == 'R'):
+                    spec_chan = 'orange'
+                elif (LRS2_spec == 'R') and (Side == 'L'):
+                    spec_chan = 'red'
+                elif (LRS2_spec == 'R') and (Side == 'R'):
+                    spec_chan = 'far-red'
 
-            #build wavelength solution and find min and max wavelength of that solution
-            wave_sol = np.add(np.arange(0,(lenZ*CDELT)+1,CDELT),CRVAL)
-            max_wave = np.amax(wave_sol)
-            min_wave = np.amin(wave_sol)
+                #build wavelength solution and find min and max wavelength of that solution
+                wave_sol = np.add(np.arange(0,(lenZ*CDELT)+1,CDELT),CRVAL)
+                max_wave = np.amax(wave_sol)
+                min_wave = np.amin(wave_sol)
 
-            #append the values for each frame to inform user of bounds of this data set if their values are out of bounds
-            max_wave_set.append(max_wave)
-            min_wave_set.append(min_wave)
+                #append the values for each frame to inform user of bounds of this data set if their values are out of bounds
+                max_wave_set.append(max_wave)
+                min_wave_set.append(min_wave)
 
-            #If they choose to collapse entire cube ([0,0]) all data cubes are collapsed into images
-            if low_wave == 0 and high_wave == 0:
-                num_cubes = num_cubes + 1 
-                print('Building image from '+spec_chan+' channel cube: '+op.basename(c))
-                print('Collapsing entire cube')
+                #If they choose to collapse entire cube ([0,0]) all data cubes are collapsed into images
+                if low_wave == 0 and high_wave == 0:
+                    num_cubes = num_cubes + 1 
+                    print('Building image from '+spec_chan+' channel cube: '+op.basename(c))
+                    print('Collapsing entire cube')
 
-                sum_image  = np.sum(dat, axis=0) #sums data cube in z direction
-                pyfits.writeto( location_prefix+'Col'+op.basename(c), sum_image, header=hdr, clobber=True)
-                print('\n')
+                    sum_image  = np.sum(dat, axis=0) #sums data cube in z direction
+                    pyfits.writeto( location_prefix+'Col'+op.basename(c), sum_image, header=hdr, clobber=True)
+                    print('\n')
 
-            #If the user choose a wavelength range check if it in range of this cube 
-            if (low_wave >= min_wave) and (high_wave <= max_wave):
-                num_cubes = num_cubes + 1 
-                print('Building image from '+spec_chan+' channel cube: '+op.basename(c))
-                print('Collapsing cube from '+str(low_wave)+' to '+str(high_wave))
+                #If the user choose a wavelength range check if it in range of this cube 
+                if (low_wave >= min_wave) and (high_wave <= max_wave):
+                    num_cubes = num_cubes + 1 
+                    print('Building image from '+spec_chan+' channel cube: '+op.basename(c))
+                    print('Collapsing cube from '+str(low_wave)+' to '+str(high_wave))
 
-                #find what index these wavelengths most closely correspond to. 
-                low_ind  = (np.abs(wave_sol-low_wave)).argmin()
-                high_ind = (np.abs(wave_sol-high_wave)).argmin()
+                    #find what index these wavelengths most closely correspond to. 
+                    low_ind  = (np.abs(wave_sol-low_wave)).argmin()
+                    high_ind = (np.abs(wave_sol-high_wave)).argmin()
 
-                #find wavelength value at this index - not exactly users choice so want to print value
-                low_val  = str(wave_sol[low_ind]).split('.')[0]
-                high_val = str(wave_sol[high_ind]).split('.')[0]
+                    #find wavelength value at this index - not exactly users choice so want to print value
+                    low_val  = str(wave_sol[low_ind]).split('.')[0]
+                    high_val = str(wave_sol[high_ind]).split('.')[0]
 
-                #Build image from that data cube 
-                dat_region = dat[low_ind:high_ind,:,:] #build region from low to high z - include all x,y
-                sum_image  = np.sum(dat_region, axis=0) #sum the image in the z direction
-                pyfits.writeto( location_prefix+'Col_'+low_val+'_'+high_val+'_'+op.basename(c), sum_image, header=hdr, clobber=True)
-                print('\n')
+                    #Build image from that data cube 
+                    dat_region = dat[low_ind:high_ind,:,:] #build region from low to high z - include all x,y
+                    sum_image  = np.sum(dat_region, axis=0) #sum the image in the z direction
+                    pyfits.writeto( location_prefix+'Col_'+low_val+'_'+high_val+'_'+op.basename(c), sum_image, header=hdr, clobber=True)
+                    print('\n')
 
-        #if num_cubes is 0: all cubes out of wavelength range of users choice 
-        if num_cubes == 0:
-            print ("Wavelength range you choose for collapse cube is out of range")
-            sys.exit("This LRS2-"+LRS2_spec+" data set ranges between "+str(np.amin(min_wave_set))+" and "+str(np.amax(max_wave_set))+" Angstroms")
+            #if num_cubes is 0: all cubes out of wavelength range of users choice 
+            if num_cubes == 0:
+                print ("Wavelength range you choose for collapse cube is out of range")
+                sys.exit("This LRS2-"+LRS2_spec+" data set ranges between "+str(np.amin(min_wave_set))+" and "+str(np.amax(max_wave_set))+" Angstroms")
 
     return vframes
     
