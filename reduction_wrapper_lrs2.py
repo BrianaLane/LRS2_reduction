@@ -1260,56 +1260,57 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         print ('***********************')
         print ('* BUILDING DATA CUBES *')
         print ('***********************')
+        for s in sci_objects:
         #cd inside of the science directory 
-        location_prefix = redux_dir + "/" + sci_dir + "/" 
-        os.chdir(location_prefix)
+            location_prefix = redux_dir + "/" + sci_dir + "/" + s + "/"
+            os.chdir(location_prefix)
 
-        #builds a list of files to build a data cube 
-        #checks for if there are wavelength resampled fiber extracted and sky subtracted files
-        Fefiles = glob.glob( "*/FeRS*_sci_*.fits")
-        #if not then checks for fiber extraced and sky subtracted files 
-        if len(Fefiles) == 0:
-            Fefiles = glob.glob("*/FeS*_sci_*.fits")
-        #if not checks for any type of fiber extracted files (resampled or not)
-        if len(Fefiles) == 0:
-            Fefiles = glob.glob("*/Fe*_sci_*.fits")
+            #builds a list of files to build a data cube 
+            #checks for if there are wavelength resampled fiber extracted and sky subtracted files
+            Fefiles = glob.glob( "FeRS*_sci_*.fits")
+            #if not then checks for fiber extraced and sky subtracted files 
+            if len(Fefiles) == 0:
+                Fefiles = glob.glob("FeS*_sci_*.fits")
+            #if not checks for any type of fiber extracted files (resampled or not)
+            if len(Fefiles) == 0:
+                Fefiles = glob.glob("Fe*_sci_*.fits")
 
-        if len(Fefiles) == 0:
-            sys.exit("No fiber extracted files found - You must run fiberextract before building data cube")
+            if len(Fefiles) == 0:
+                sys.exit("No fiber extracted files found - You must run fiberextract before building data cube")
 
-        for f in Fefiles:
-            im  = pyfits.open(f)
-            hdr = im[0].header
-            #extracting header information for to know what channel file corresponds to and for dither file information 
-            uca     = hdr['SPECID']
-            side    = hdr['CCDPOS']
-            airmass = hdr['AIRMASS']
+            for f in Fefiles:
+                im  = pyfits.open(f)
+                hdr = im[0].header
+                #extracting header information for to know what channel file corresponds to and for dither file information 
+                uca     = hdr['SPECID']
+                side    = hdr['CCDPOS']
+                airmass = hdr['AIRMASS']
 
-            ditherfile = 'dither_LRS2_' + side + '.txt'
+                ditherfile = 'dither_LRS2_' + side + '.txt'
 
-            #choose correct mapping file for the channel you are using
-            if   (LRS2_spec == 'B') and (side == 'L'):
-                IFUfile = mapdir+'LRS2_B_UV_mapping.txt'
-            elif (LRS2_spec == 'B') and (side == 'R'):
-                IFUfile = mapdir+'LRS2_B_OR_mapping.txt'
-            elif (LRS2_spec == 'R') and (side == 'L'):
-                IFUfile = mapdir+'LRS2_R_NR_mapping.txt'
-            elif (LRS2_spec == 'R') and (side == 'R'):
-                IFUfile = mapdir+'LRS2_R_FR_mapping.txt'
+                #choose correct mapping file for the channel you are using
+                if   (LRS2_spec == 'B') and (side == 'L'):
+                    IFUfile = mapdir+'LRS2_B_UV_mapping.txt'
+                elif (LRS2_spec == 'B') and (side == 'R'):
+                    IFUfile = mapdir+'LRS2_B_OR_mapping.txt'
+                elif (LRS2_spec == 'R') and (side == 'L'):
+                    IFUfile = mapdir+'LRS2_R_NR_mapping.txt'
+                elif (LRS2_spec == 'R') and (side == 'R'):
+                    IFUfile = mapdir+'LRS2_R_FR_mapping.txt'
 
-            psf      = 1.5
-            basename = f[2:-7] + '_' + side 
-            outname  = f[0:-5] 
+                psf      = 1.5
+                basename = f[2:-7] + '_' + side 
+                outname  = f[0:-5] 
 
-            #call writeDither to build the dither file needed for mkcube
-            ditherf = open(ditherfile, 'w')
-            ditherinfo.writeHeader(ditherf)
-            ditherinfo.writeDither(ditherf,basename,"../mastertrace_"+str(uca)+'_'+side, 0.0, 0.0, psf, 1.00, airmass)
+                #call writeDither to build the dither file needed for mkcube
+                ditherf = open(ditherfile, 'w')
+                ditherinfo.writeHeader(ditherf)
+                ditherinfo.writeDither(ditherf,basename,"../mastertrace_"+str(uca)+'_'+side, 0.0, 0.0, psf, 1.00, airmass)
 
-            mkcube(IFUfile,ditherfile,outname,diffAtmRef,cubeopts) 
+                mkcube(IFUfile,ditherfile,outname,diffAtmRef,cubeopts) 
 
-        #cd back into the reduction directory 
-        os.chdir('../../')
+            #cd back into the reduction directory 
+            os.chdir('../../')
 
     # Run collapse cube
     if collapseCube:
