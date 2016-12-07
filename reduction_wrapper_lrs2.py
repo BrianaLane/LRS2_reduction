@@ -802,7 +802,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         #if LRS2-R need to include long FeAr cmps for far-red channel
         print ('Including long exposure FeAr comps for far-red channel reduction')
         longFeArR_folds  = configdir+'/longExpCals/long_FeAr_R'
-        long_FeArR_files = close_cal_date(longFeArR_folds,data_time)
+        longFeArR_files = close_cal_date(longFeArR_folds,data_time)
 
         for f in longFeArR_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
@@ -826,7 +826,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         #if LRS2-B need to include long FeAr cmps for UV channel
         print ('Including long exposure FeAr comps for UV channel reduction')
         longFeArB_folds  = configdir+'/longExpCals/long_FeAr_B'
-        long_FeArB_files = close_cal_date(longFeArB_folds,data_time)
+        longFeArB_files = close_cal_date(longFeArB_folds,data_time)
 
         for f in longFeArB_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
