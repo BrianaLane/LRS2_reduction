@@ -708,6 +708,25 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         FLT_LAMP = 'ldls'
         LAMP_DICT = {0:'Hg',1:'Cd', 2:'FeAr'}
 
+    #This function is for finding the closest folder date to the data taken
+    #this is used for finding the best folder to pull special cal data from
+    def close_cal_date(fold_list,data_time):
+        #makes a list of all of the names of all the date folders
+        long_folds = glob.glob(fold_list + '/*')
+        folds = []
+        #creates datetime object for each date folder 
+        for l in long_folds:
+            year  = int(l.split('/')[-1][0:4])
+            month = int(l.split('/')[-1][4:6])
+            day   = int(l.split('/')[-1][6:8])
+            folds.append(datetime(year,month,day))
+        #finds the closest date/folder to the date the data was taken 
+        close_date = min(folds, key=lambda x:abs(x-data_time))
+
+        #returns a list of all of the files names of the files in that date folder 
+        long_files = glob.glob(fold_list+'/'+str(close_date.year)+str(close_date.month)+str(close_date.day)+'/exp*/lrs2/*.fits')
+        return long_files
+
 
     ############################################
     # Find calibration data and science images #
@@ -731,8 +750,10 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     if (ucam == '502') and first_run:
         print ('Including long exposure Qth flats for far-red channel reduction')
         fframes_orig = []
-        longQth_files = glob.glob(configdir+'/FR_longCals/long_Qth/exp*/lrs2/*.fits')
-        for f in longQth_files:            
+        longQthR_folds  = configdir+'/longExpCals/long_Qth_R'
+        longQthR_files = close_cal_date(longQthR_folds,data_time)
+
+        for f in longQthR_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
             if amp == "LL":
@@ -778,10 +799,12 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         
         lframes_orig  = hgframes + faframes # gives just "cmp" frames
 
-        #if LRS2-R need to include FeAr cmps 
+        #if LRS2-R need to include long FeAr cmps for far-red channel
         print ('Including long exposure FeAr comps for far-red channel reduction')
-        longFeAr_files = glob.glob(configdir+'/FR_longCals/long_FeAr/exp*/lrs2/*.fits')
-        for f in longFeAr_files:            
+        longFeArR_folds  = configdir+'/longExpCals/long_FeAr_R'
+        long_FeArR_files = close_cal_date(longFeArR_folds,data_time)
+
+        for f in longFeArR_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
             if amp == "LL":
@@ -800,9 +823,22 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
         faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "Cd" frames
 
+        #if LRS2-B need to include long FeAr cmps for UV channel
+        print ('Including long exposure FeAr comps for UV channel reduction')
+        longFeArB_folds  = configdir+'/longExpCals/long_FeAr_B'
+        long_FeArB_files = close_cal_date(longFeArB_folds,data_time)
+
+        for f in longFeArR_files:            
+            temp, temp1, temp2 = op.basename ( f ).split('_')
+            amp                = temp1[3:5]
+            if amp == "LL":
+                a = VirusFrame( op.join( f )) 
+                faframes.append(copy.deepcopy(a))
+
         if len(faframes) == 0:
             sys.exit("No FeAr lamp exposures were found for this night")
         print ('Found '+str(len(faframes))+' FeAr frames')
+
 
         lframes_orig  = hgframes + cdframes + faframes # gives just "cmp" frames
 
@@ -1054,8 +1090,14 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                     print ("You did not provide the correct arc lamp data")
                     sys.exit( "For LRS2-"+LRS2_spec+" You must provide "+lamp+" data")
 
-            #Combine each arc master frame for each lamp in LAMP_DICT into one masterarc 
-            opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ) )
+            #Combine each arc master frame for each lamp in LAMP_DICT into one masterarc
+            #for the UV channel you need to add the Hg and FeAr (the second two) lamps together 
+            if ucam == '503' and side == 'L':
+                opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[2] + '_' + ucam + '_' + side + '.fits' ) )
+            #for all other channels you just need to add two lamps together (for orange it add Cd and Hg (the first two lamps) together)
+            else: 
+                opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ) )
+
             filename = op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' )
             addfits ( filename, opt)
             shutil.copy( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
