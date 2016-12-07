@@ -828,7 +828,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         longFeArB_folds  = configdir+'/longExpCals/long_FeAr_B'
         long_FeArB_files = close_cal_date(longFeArB_folds,data_time)
 
-        for f in longFeArR_files:            
+        for f in longFeArB_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
             if amp == "LL":
