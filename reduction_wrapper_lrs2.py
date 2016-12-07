@@ -1109,15 +1109,15 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         #X value to start with to extend trace to the edge of chip
         start_col = 50
 
-        im = pyfits.open(redux_dir+'/mastertrace_502_R.fits')
-        hdr = pyfits.getheader(redux_dir+'/mastertrace_502_R.fits')
+        im = pyfits.open(redux_dir+'/mastertrace_'+str(ucam)+'_R.fits')
+        hdr = pyfits.getheader(redux_dir+'/mastertrace_'+str(ucam)+'_R.fits')
         dat =  im[0].data
 
         dat = extend_trace_start(dat,start_col,10)
 
         #before writing the new file it moves the old mastertrace to a file with _orig appended to save original file
-        shutil.move(redux_dir+'/mastertrace_502_R.fits',redux_dir+'/mastertrace_502_R_orig.fits')
-        pyfits.writeto(redux_dir+'/mastertrace_502_R.fits', data = dat, header = hdr, clobber=True)
+        shutil.move(redux_dir+'/mastertrace_'+str(ucam)+'_R.fits',redux_dir+'/mastertrace_'+str(ucam)+'_R_orig.fits')
+        pyfits.writeto(redux_dir+'/mastertrace_'+str(ucam)+'_R.fits', data = dat, header = hdr, clobber=True)
 
         #fix far-red channel masterarc
 
@@ -1130,15 +1130,15 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         #X value to start with to extend trace to the edge of chip
         start_col = 100
 
-        im = pyfits.open(redux_dir+'/mastertrace_501_R.fits')
-        hdr = pyfits.getheader(redux_dir+'/mastertrace_501_R.fits')
+        im = pyfits.open(redux_dir+'/mastertrace_'+str(ucam)+'_R.fits')
+        hdr = pyfits.getheader(redux_dir+'/mastertrace_'+str(ucam)+'_R.fits')
         dat =  im[0].data
 
         dat = extend_trace_start(dat,start_col,10)
 
         #before writing the new file it moves the old mastertrace to a file with _orig appended to save original file
-        shutil.move(redux_dir+'/mastertrace_501_R.fits',redux_dir+'/mastertrace_501_R_orig.fits')
-        pyfits.writeto(redux_dir+'/mastertrace_501_R.fits', data = dat, header = hdr, clobber=True)
+        shutil.move(redux_dir+'/mastertrace_'+str(ucam)+'_R.fits',redux_dir+'/mastertrace_'+str(ucam)+'_R_orig.fits')
+        pyfits.writeto(redux_dir+'/mastertrace_'+str(ucam)+'_R.fits', data = dat, header = hdr, clobber=True)
 
     if sort_sci:
         print ('**************************************************')
