@@ -1093,18 +1093,25 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             #Combine each arc master frame for each lamp in LAMP_DICT into one masterarc
             #for the UV channel you need to add the Hg and FeAr (the second two) lamps together 
             if ucam == '503' and side == 'L':
-                opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[2] + '_' + ucam + '_' + side + '.fits' ) )
+                opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ) )
+                filename = op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[2] + '_' + ucam + '_' + side + '.fits' )
+                addfits ( filename, opt)
+                shutil.copy( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[2] + '_' + ucam + '_' + side + '.fits' ), 
+                             op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+                shutil.copy( op.join ( redux_dir, 'e.smasterarc' + '_' + LAMP_DICT[2] + '_' + ucam + '_' + side + '.fits' ), 
+                             op.join ( redux_dir, 'e.masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+                os.remove  ( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[2] + '_' + ucam + '_' + side + '.fits' ) )
+
             #for all other channels you just need to add two lamps together (for orange it add Cd and Hg (the first two lamps) together)
             else: 
                 opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ) )
-
-            filename = op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' )
-            addfits ( filename, opt)
-            shutil.copy( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
-                         op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' ) )
-            shutil.copy( op.join ( redux_dir, 'e.smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
-                         op.join ( redux_dir, 'e.masterarc' + '_' + ucam + '_' + side + '.fits' ) )
-            os.remove  ( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ) )
+                filename = op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' )
+                addfits ( filename, opt)
+                shutil.copy( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
+                             op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+                shutil.copy( op.join ( redux_dir, 'e.smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ), 
+                             op.join ( redux_dir, 'e.masterarc' + '_' + ucam + '_' + side + '.fits' ) )
+                os.remove  ( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ) )
 
         #clean intermediate frames in cmp if clean
         for l in lframes:
@@ -1208,7 +1215,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         for side in SPECBIG:  
             #selects wavelength range and ref arc line for each channel
             if (LRS2_spec == 'B') and (side == 'L'):
-                wave_range = '[3700,4700]'
+                wave_range = '[3600,4700]'
                 ref_line = 6
             if (LRS2_spec == 'B') and (side == 'R'):
                 wave_range = '[4600,7000]'
@@ -1267,8 +1274,8 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             for side in SPECBIG:
                 #for each channel selects correct wavlength range and dw
                 if (LRS2_spec == 'B') and (side == 'L'):
-                    wave_range = '3643,4668'
-                    dw = '0.496'
+                    wave_range = '3643,4658'
+                    dw = '0.49'
                 if (LRS2_spec == 'B') and (side == 'R'):
                     wave_range = '4600,7000'
                     dw = '1.2'
