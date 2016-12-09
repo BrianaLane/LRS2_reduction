@@ -767,7 +767,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     fframes_orig.append(copy.deepcopy(a)) 
                     num = num + 1
 
-        print ('Including '+str(len(num))+' long exposure Qth flats for far-red channel reduction')
+        print ('Including '+str(num)+' long exposure Qth flats for far-red channel reduction')
 
     if len(fframes_orig) == 0:
         sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
@@ -815,7 +815,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     faframes_orig.append(copy.deepcopy(a)) 
                     num = num + 1
 
-        print ('Including '+str(len(num))+' long exposure FeAr comps for far-red channel reduction')
+        print ('Including '+str(num)+' long exposure FeAr comps for far-red channel reduction')
 
         if len(faframes) == 0:
             sys.exit("No FeAr lamp exposures were found for this night")
@@ -850,7 +850,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     faframes.append(copy.deepcopy(a))
                     num = num + 1
 
-        print ('Including '+str(len(num))+' long exposure FeAr comps for UV channel reduction')
+        print ('Including '+str(num)+' long exposure FeAr comps for UV channel reduction')
 
         if len(faframes) == 0:
             sys.exit("No FeAr lamp exposures were found for this night")
