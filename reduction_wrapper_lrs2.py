@@ -746,25 +746,31 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     #------------#
     # flt frames #
     #------------#
+
+    fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == FLT_LAMP] # gives just "flt" frames
+
+    print ('Found '+str(len(fframes_orig))+' '+FLT_LAMP+' flt frames')
+
     #if old first run data and LRS2-R - need to use long Qth exposures in config
     if (ucam == '502') and first_run:
-        print ('Including long exposure Qth flats for far-red channel reduction')
         fframes_orig = []
         longQthR_folds  = configdir+'/longExpCals/long_Qth_R'
         longQthR_files = close_cal_date(longQthR_folds,data_time)
 
+        num = 0
         for f in longQthR_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
             if amp == "LL":
                 a = VirusFrame( f ) 
-                fframes_orig.append(copy.deepcopy(a)) 
-    else:
-        fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == FLT_LAMP] # gives just "flt" frames
+                if a.specid == ucam:
+                    fframes_orig.append(copy.deepcopy(a)) 
+                    num = num + 1
+
+        print ('Including '+str(len(num)+' long exposure Qth flats for far-red channel reduction')
 
     if len(fframes_orig) == 0:
         sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
-    print ('Found '+str(len(fframes_orig))+' '+FLT_LAMP+' flt frames')
 
     #-----------#
     # Hg frames #
@@ -792,24 +798,29 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     #----------------#
     if ucam == '502':
         faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "FeAr" frames
-        
-        if len(faframes) == 0:
-            sys.exit("No FeAr lamp exposures were found for this night") 
+         
         print ('Found '+str(len(faframes))+' FeAr frames')
-        
-        lframes_orig  = hgframes + faframes # gives just "cmp" frames
 
         #if LRS2-R need to include long FeAr cmps for far-red channel
-        print ('Including long exposure FeAr comps for far-red channel reduction')
         longFeArR_folds  = configdir+'/longExpCals/long_FeAr_R'
         longFeArR_files = close_cal_date(longFeArR_folds,data_time)
 
+        num = 0
         for f in longFeArR_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
             if amp == "LL":
                 a = VirusFrame( op.join( f )) 
-                lframes_orig.append(copy.deepcopy(a)) 
+                if a.specid == ucam:
+                    faframes_orig.append(copy.deepcopy(a)) 
+                    num = num + 1
+
+        print ('Including '+str(len(num))+' long exposure FeAr comps for far-red channel reduction')
+
+        if len(faframes) == 0:
+            sys.exit("No FeAr lamp exposures were found for this night")
+
+        lframes_orig  = hgframes + faframes # gives just "cmp" frames
 
     #----------------#
     # 503 cmp frames #
@@ -821,24 +832,28 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             sys.exit("No Cd lamp exposures were found for this night")
         print ('Found '+str(len(cdframes))+' Cd frames')
 
-        faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "Cd" frames
+        faframes = [t for t in tframes if t.type == "cmp" and t.object == "FeAr"] # gives just "FeAr" frames
+
+        print ('Found '+str(len(faframes))+' FeAr frames')
 
         #if LRS2-B need to include long FeAr cmps for UV channel
-        print ('Including long exposure FeAr comps for UV channel reduction')
         longFeArB_folds  = configdir+'/longExpCals/long_FeAr_B'
         longFeArB_files = close_cal_date(longFeArB_folds,data_time)
 
+        num = 0
         for f in longFeArB_files:            
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
             if amp == "LL":
                 a = VirusFrame( op.join( f )) 
-                faframes.append(copy.deepcopy(a))
+                if a.specid == ucam:
+                    faframes.append(copy.deepcopy(a))
+                    num = num + 1
+
+        print ('Including '+str(len(num))+' long exposure FeAr comps for UV channel reduction')
 
         if len(faframes) == 0:
             sys.exit("No FeAr lamp exposures were found for this night")
-        print ('Found '+str(len(faframes))+' FeAr frames')
-
 
         lframes_orig  = hgframes + cdframes + faframes # gives just "cmp" frames
 
