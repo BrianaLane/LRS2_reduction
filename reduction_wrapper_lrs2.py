@@ -813,7 +813,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             if amp == "LL":
                 a = VirusFrame( op.join( f )) 
                 if a.specid == ucam:
-                    faframes_orig.append(copy.deepcopy(a)) 
+                    faframes.append(copy.deepcopy(a)) 
                     num = num + 1
 
         print ('Including '+str(num)+' long exposure FeAr comps for far-red channel reduction')
