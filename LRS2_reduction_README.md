@@ -129,7 +129,8 @@
 	--------------------------
 
 	- open your lrs2_config.py file in a text editor 
-	- edit fields and paths according to the comments to define your data to be reduced, choose the steps of reduction to run, and opts for those steps
+	- edit fields and paths according to the comments to define your data to be reduced:
+		1) choose the steps of reduction to run, and opts for those steps
 	- save the changes to lrs2_config.py 
 	- run reduction_wrapper_lrs2.py (if run outside of LRS2_reduction you must give the path to reduction_wrapper_lrs2.py)
 		>>> python reduction_wrapper_lrs2.py  

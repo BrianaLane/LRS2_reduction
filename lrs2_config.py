@@ -15,16 +15,18 @@
 
 LRS2_spec    	= 'B' 					#choose R or B only 
 
-#path and name of the folder where reduction is run - NOTE: this folder is created by the script so the path has to exit but the folder does not
+#path and name of the folder where reduction is run - NOTE: this folder is created by the script so the path has to exist but the folder does not
 redux_dir       = "/home/04195/bindahl/shela_z4_731"	
 
-#path to date folder containing raw data 
+#path to date folder containing raw data - This points to the folder where the data is stored on Maverick 
 date_folder     = "/work/03946/hetdex/maverick/20160731"	
 
-#Choose science objects from this night to reduce (These names can be found in the header keywork OBJECT)
+#Choose science objects from this night to reduce (These names can be found in the header keyword OBJECT)
 #If left as empty list all science objects from that night will be reduced. 
-sci_objects 	= ['SHELA_z4gal_0503678',]	
+#Take off the '_R' or '_B' at the end of the object name. The script will choose the correct one based on LRS2_spec you choose
+sci_objects 	= ["SHELA_z4gal_0503678",]	
 
+#Make sure to change this so it points to the lrs2_config folder in your LRS2_reduction directory
 configdir       = "/home/04195/bindahl/LRS2_reduction/lrs2_config"	#path to your lrs2_config folder
 
 #*******************************#
@@ -57,7 +59,7 @@ rmCosmics	 	= True  		#[True/False] If True the program L.A.Cosmic is used to el
 window_size 	= 200 			#[integer] Size (in image lines) of moving window for sky median
 sky_kappa 		=[3.5,3.5]		#[floatarray] Lower and upper kappa for final sky kappa-sigma clipping.
 smoothing 		= 2.0 			#[float] Smoothing factor for approximating spline.
-sn_thresh		= 5 			#[float] Minimum signal to noise to flag fiber as continuum and ignore it during sky generation.
+sn_thresh		= 15 			#[float] Minimum signal to noise to flag fiber as continuum and ignore it during sky generation.
 
 #--------------------#
 # fiber extract opts #
