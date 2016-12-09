@@ -1263,7 +1263,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         for side in SPECBIG:
             distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
             fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
-            Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "p*_sci_*.fits")
+            Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "p*_sci_"+side+".fits")
             subtractsky(Sfiles,side,distmodel,fibermodel,subskyopts)
 
     # Run fiberextract
@@ -1275,13 +1275,6 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         dist_files = glob.glob(op.join(redux_dir,'*.dist'))
         if len(dist_files) == 0:
             sys.exit("You must run deformer before you can run fiber extract")
-
-        #finds if there are sky subtracted files. If so it uses those.
-        Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "Sp*_sci_*.fits")
-        if len(Sfiles) == 0:
-            base = 'pses'
-        else:
-            base = 'Spses'
 
         if wl_resample:
             print ('    ++++++++++++++++++++++++++++')
@@ -1302,6 +1295,11 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                     wave_range = '8324,10565'
                     dw = '1.129'
 
+                #finds if there are sky subtracted files. If so it uses those.
+                Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "Sp*_sci_"+side+".fits")
+                if len(Sfiles) == 0:
+                    Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "p*_sci_"+side+".fits")
+
                 distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
                 fibextract_Resample(Sfiles,distmodel,fibermodel,wave_range,dw,fibextractopts) 
@@ -1310,6 +1308,11 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             print ('    + Extraction Without Resampling +')
             print ('    +++++++++++++++++++++++++++++++++')
             for side in SPECBIG:   
+                #finds if there are sky subtracted files. If so it uses those.
+                Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "Sp*_sci_"+side+".fits")
+                if len(Sfiles) == 0:
+                    Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "p*_sci_"+side+".fits")
+
                 distmodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".dist"
                 fibermodel = redux_dir + "/mastertrace_" + ucam + "_" + side + ".fmod"
                 fibextract(Sfiles,distmodel,fibermodel,fibextractopts)
