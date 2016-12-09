@@ -1093,7 +1093,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             #Combine each arc master frame for each lamp in LAMP_DICT into one masterarc
             #for the UV channel you need to add the Hg and FeAr (the second two) lamps together 
             if ucam == '503' and side == 'L':
-                opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[1] + '_' + ucam + '_' + side + '.fits' ) )
+                opt = "--file {:s}".format( op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[0] + '_' + ucam + '_' + side + '.fits' ) )
                 filename = op.join ( redux_dir, 'masterarc' + '_' + LAMP_DICT[2] + '_' + ucam + '_' + side + '.fits' )
                 addfits ( filename, opt)
                 shutil.copy( op.join ( redux_dir, 'smasterarc' + '_' + LAMP_DICT[2] + '_' + ucam + '_' + side + '.fits' ), 
