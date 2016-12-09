@@ -721,10 +721,11 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             day   = int(l.split('/')[-1][6:8])
             folds.append(datetime(year,month,day))
         #finds the closest date/folder to the date the data was taken 
-        close_date = min(folds, key=lambda x:abs(x-data_time))
+        close_date      = min(folds, key=lambda x:abs(x-data_time))
+        close_date_name = str(close_date.year).zfill(4)+str(close_date.month).zfill(2)+str(close_date.day).zfill(2)
 
         #returns a list of all of the files names of the files in that date folder 
-        long_files = glob.glob(fold_list+'/'+str(close_date.year)+str(close_date.month)+str(close_date.day)+'/exp*/lrs2/*.fits')
+        long_files = glob.glob(fold_list+'/'+close_date_name+'/exp*/lrs2/*.fits')
         return long_files
 
 
