@@ -1208,7 +1208,8 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     if sort_sci:
         print ('**************************************************')
         print ('* SORTING SCIENCE FRAMES INTO OBJECT DIRECTORIES *')
-        print ('**************************************************')    
+        print ('**************************************************') 
+        #Make a directory in sci folder for each science object    
         for s in sci_objects:
             os.mkdir ( op.join( redux_dir, sci_dir, s ))
         for s in sframes:
@@ -1322,7 +1323,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     left_files = glob.glob('*.log') + glob.glob('*.residuals')
     if len(left_files) > 0:
         for l in left_files:
-            os.rename(l, op.join(redux_dir,l))
+            shutil.move(l, op.join(redux_dir,l))
 
     # Run mkcube
     if makecube:
