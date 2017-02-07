@@ -127,14 +127,14 @@
 
 - You should now have a folder in your work directory called LRS2_reduction. This folder contains the following files and folder:
 
-	1. reduction_wrapper_lrs2.py - This is the folder that runs the reductions. You should never have to edit this file. 
-	2. lrs2_config.py 			 - This is the config file where the user defines the data and opts for their reduction
-	3. cosmics.py 				 - This is the script that runs L.A.comsic in the reduction (http://obswww.unige.ch/~tewes/cosmics_dot_py/)
-	4. lrs2_config 				 - This is a folder that contains all of the configurations files needed for LRS2 reduction 
-	  * lines_files	     - These files defined the pixel and wavelength to find the arc lines for building the wavelength solution
-	  * mapping_files	 - These files contain the mapping of the fibers onto the field for building data cubes
-	  * pixel_flats	     - These files are the pixels flats for each CCD that can be optionally divided during reduction
-	  * longExpCals	     - This are 1800sec FeAr exposures used for pinning down the wavelength solution for the far-red channel
+	1. __reduction_wrapper_lrs2.py__ - This is the folder that runs the reductions. You should never have to edit this file. 
+	2. __lrs2_config.py__ 			 - This is the config file where the user defines the data and opts for their reduction
+	3. __cosmics.py__ 				 - This is the script that runs L.A.comsic in the reduction (http://obswww.unige.ch/~tewes/cosmics_dot_py/)
+	4. __lrs2_config__ 				 - This is a folder that contains all of the configurations files needed for LRS2 reduction 
+	  * __lines_files__	     - These files defined the pixel and wavelength to find the arc lines for building the wavelength solution
+	  * __mapping_files__	 - These files contain the mapping of the fibers onto the field for building data cubes
+	  * __pixel_flats__	     - These files are the pixels flats for each CCD that can be optionally divided during reduction
+	  * __longExpCals__	     - This are 1800sec FeAr exposures used for pinning down the wavelength solution for the far-red channel
 
 --------------------------
 4) Running LRS2 reduction:
