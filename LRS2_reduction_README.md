@@ -153,6 +153,8 @@
 	* For example you could make your own config file copies with settings you want to save 
 	* or you can use the saved config files in one of your redux directories. 
 - To run the reduction script with a different config file:
+	* First you must copy the config file to your LRS2_reduction directory if it is not already there
+	* Run the script with the following command
 
 		>>> python reduction_wrapper_lrs2.py -config "path/name_of_config.py"
 
