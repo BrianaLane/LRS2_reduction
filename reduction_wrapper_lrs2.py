@@ -657,7 +657,7 @@ def extend_trace_start(data,start_col,window):
     #returns the chip array with this correction 
     return data          
 
-def initial_setup ( DIR_DICT = None, config.sci_objects = None, redux_dir = None):
+def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     '''
     Running the initial setup which includes:
     1) Building a standard reduction folder structure
@@ -969,7 +969,7 @@ def initial_setup ( DIR_DICT = None, config.sci_objects = None, redux_dir = None
                         
     return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP
 
-def basicred(DIR_DICT, config.sci_objects, redux_dir, basic = False, dividepf = False,
+def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
               normalize = False, masterdark = False, masterarc = False, mastertrace = False):
     '''
     Running the basic reduction which includes:
