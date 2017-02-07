@@ -24,12 +24,44 @@ from os import environ
 import re
 import string
 import cosmics 
-from lrs2_config import * 
+#from lrs2_config import * 
 
 #blu 370-470nm
 #org 460-700nm
 #red 650-842nm
 #frd 818-1050nm
+
+#############################
+# Define config file to use #
+#############################
+
+def parse_args(argv=None):
+    """Parse the command line arguments
+    Parameters
+    ----------
+    argv : list of string
+        arguments to parse; if ``None``, ``sys.argv`` is used
+    Returns
+    -------
+    Namespace
+        parsed arguments
+    """
+    description = "config_file"
+    parser = ap.ArgumentParser(description=description,
+                            formatter_class=ap.ArgumentDefaultsHelpFormatter)
+                        
+    parser.add_argument("-config", nargs='?', type=str, help='''config file. "path_to_config/lrs2_config.py"''', default="lrs2_config.py")
+
+    args = parser.parse_args(args=argv) 
+           
+    return args
+
+args = parse_args()
+
+config_file_name = args.config
+config_arg       = config_file_name.split(".")[0]
+
+importlib.import_module(config_arg, package=None)
 
 #################################
 # Defining which unit to reduce #
