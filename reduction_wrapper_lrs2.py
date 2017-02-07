@@ -62,25 +62,25 @@ args = parse_args()
 config_file_name = args.config
 config_arg       = config_file_name.split(".")[0]
 
-importlib.import_module(config_arg, package=None)
+config = importlib.import_module(config_arg, package=None)
 
 #################################
 # Defining which unit to reduce #
 #################################
 
 #specifying LRS2 unit to reduce 
-if LRS2_spec == 'B':
-    redux_dir   = redux_dir+'_B'
+if config.LRS2_spec == 'B':
+    redux_dir   = config.redux_dir+'_B'
     print ('#########################################')
     print ('## RUNNING DATA REDUCTION ON LRS2-BLUE ##')
     print ('#########################################')
-elif LRS2_spec == 'R':
-    redux_dir   = redux_dir+'_R'
+elif config.LRS2_spec == 'R':
+    redux_dir   = config.redux_dir+'_R'
     print ('########################################')
     print ('## RUNNING DATA REDUCTION ON LRS2-RED ##')
     print ('########################################')
 else:
-    sys.exit('You need to choose either R or B for LRS2_spec')
+    sys.exit('You need to choose either R or B for config.LRS2_spec')
 
 ##################################################
 # Setting CUREBIN and check LRS2 defined in CURE #
@@ -110,13 +110,13 @@ else:
 
 #if basic reduction is run need to specify specific routines to run 
 # divide pixel flat and masterdark are not being used now
-if basic:
-    rmcosmics       = rmCosmics 
+if config.basic:
+    rmcosmics       = config.rmCosmics 
     fix_chan        = True
-    dividepf        = dividePixFlt
+    dividepf        = config.dividePixFlt
     normalize       = False
-    masterdark      = subDarks
-    subtractdark    = subDarks
+    masterdark      = config.subDarks
+    subtractdark    = config.subDarks
     masterarc       = True  
     mastertrace     = True 
     sort_sci        = True
@@ -153,9 +153,9 @@ darkopts        = "--maxmem 1024 -s -t -m -k 2.8"
 arcopts         = "--maxmem 1024 -s -t -m -k 2.8"
 traceopts       = "--maxmem 1024 -s -t -m -k 2.8"
 deformeropts    = "-p 7 -n 4 -C 10 --debug --dump_psf_data"
-subskyopts      = "-J --output-both -w "+str(window_size)+" -k "+str(sky_kappa[0])+','+str(sky_kappa[1])+" -m "+str(smoothing)+" -T "+str(sn_thresh)
+subskyopts      = "-J --output-both -w "+str(config.window_size)+" -k "+str(config.sky_kappa[0])+','+str(config.sky_kappa[1])+" -m "+str(config.smoothing)+" -T "+str(config.sn_thresh)
 fibextractopts  = "-P"
-cubeopts        = "-a "+str(sky_sampling)+" -k "+str(max_distance)+" -s "+str(cube_sigma)
+cubeopts        = "-a "+str(config.sky_sampling)+" -k "+str(max_distance)+" -s "+str(config.cube_sigma)
 
 #########################
 # Defining data folders #
@@ -183,9 +183,9 @@ SPECBIG = ["L","R"]
 #############################
 
 #specifies directories for lines and mapping/cen files for LRS2 in the LRS2 config directory 
-linesdir    = configdir + '/lines_files'
-mapdir      = configdir + '/mapping_files/'
-pixflatdir  = configdir + '/pixel_flats/'
+linesdir    = config.configdir + '/lines_files'
+mapdir      = config.configdir + '/mapping_files/'
+pixflatdir  = config.configdir + '/pixel_flats/'
 
 ##################
 # Define Classes #
@@ -218,7 +218,7 @@ class VirusFrame:
             self.year                   = int(self.basename.split('T')[0][0:4])
             self.month                  = int(self.basename.split('T')[0][4:6])
             self.day                    = int(self.basename.split('T')[0][6:8])
-            self.clean                  = CLEAN_AFTER_DONE
+            self.clean                  = config.CLEAN_AFTER_DONE
             self.trimsec                = "2:2065,1:1032" 
             self.biassec                = "2066:2128,1:1032" 
 
@@ -657,7 +657,7 @@ def extend_trace_start(data,start_col,window):
     #returns the chip array with this correction 
     return data          
 
-def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
+def initial_setup ( DIR_DICT = None, config.sci_objects = None, redux_dir = None):
     '''
     Running the initial setup which includes:
     1) Building a standard reduction folder structure
@@ -693,7 +693,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     ####################################################
     aframes = [] # will fill this list with VirusFrame class objects for each image
     #make a list of all fits files in the redux directory 
-    date_ims = glob.glob(op.join(date_folder,'lrs2/lrs2*/exp*/lrs2/*.fits'))
+    date_ims = glob.glob(op.join(config.date_folder,'lrs2/lrs2*/exp*/lrs2/*.fits'))
     for f in date_ims:            
         temp, temp1, temp2 = op.basename ( f ).split('_')
         amp                = temp1[3:5]
@@ -720,9 +720,9 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ("WARNING:You are running reduction on shared-risk LRS2_data - calibration data set may not be ideal")
 
     #checks which unit to reduce and sets ucam (specid) - If B decides if old or new specid based of first_run found in intial_setup()
-    if LRS2_spec == 'R':
+    if config.LRS2_spec == 'R':
         ucam = "502"
-    elif LRS2_spec == 'B':
+    elif config.LRS2_spec == 'B':
         #if LRS2-B finds the date of the data taken to know if it is the new or old LRS2-B
         if first_run:
             ucam = "501"
@@ -766,7 +766,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     # Find calibration data and science images #
     ############################################
     #from the vframes makes lists of files vframes according to type and specid (ucam)
-    tframes  = [a for a in aframes if (a.specid == ucam) and (a.cal_side == None or a.cal_side == LRS2_spec)] # gives all frames 
+    tframes  = [a for a in aframes if (a.specid == ucam) and (a.cal_side == None or a.cal_side == config.LRS2_spec)] # gives all frames 
 
     #------------#
     # zro frames #
@@ -788,7 +788,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     #if old first run data and LRS2-R - need to use long Qth exposures in config
     if (ucam == '502') and first_run:
         fframes_orig = []
-        longQthR_folds  = configdir+'/longExpCals/long_Qth_R'
+        longQthR_folds  = config.configdir+'/longExpCals/long_Qth_R'
         longQthR_files = close_cal_date(longQthR_folds,data_time)
 
         num = 0
@@ -836,7 +836,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ('Found '+str(len(faframes))+' FeAr frames')
 
         #if LRS2-R need to include long FeAr cmps for far-red channel
-        longFeArR_folds  = configdir+'/longExpCals/long_FeAr_R'
+        longFeArR_folds  = config.configdir+'/longExpCals/long_FeAr_R'
         longFeArR_files = close_cal_date(longFeArR_folds,data_time)
 
         num = 0
@@ -871,7 +871,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ('Found '+str(len(faframes))+' FeAr frames')
 
         #if LRS2-B need to include long FeAr cmps for UV channel
-        longFeArB_folds  = configdir+'/longExpCals/long_FeAr_B'
+        longFeArB_folds  = config.configdir+'/longExpCals/long_FeAr_B'
         longFeArB_files = close_cal_date(longFeArB_folds,data_time)
 
         num = 0
@@ -894,7 +894,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     #------------#
     # drk frames #
     #------------#
-    if subDarks:
+    if config.subDarks:
         dframes_orig  = [t for t in tframes if t.type == "drk" ] # gives dark frames
         print ('Found '+str(len(dframes_orig))+' drk frames')
         drk_exptime = list(set([float(d.exptime) for d in dframes_orig]))
@@ -908,12 +908,12 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     sci_obj_names = [s.object for s in allsframes]
     sci_obj_names = list(set(sci_obj_names))
 
-    if len(sci_objects) == 0:
-        sci_objects = sci_obj_names
+    if len(config.sci_objects) == 0:
+        config.sci_objects = sci_obj_names
 
     sframes_lis = []
     spframes_lis = []
-    for s in sci_objects:
+    for s in config.sci_objects:
         spfr = [t for t in tframes if t.type == "sci" and t.object == s ]
         sfr  = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and a.object == s]
         spframes_lis.append(spfr)
@@ -921,15 +921,15 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ("There were "+str(len(sfr))+" science frames found for "+s)
         if len(sfr) == 0:
             print ("There were no science frames with object name: "+s)
-            sys.exit("These are the object names found for "+op.basename(date_folder)+": "+str(sci_obj_names))
+            sys.exit("These are the object names found for "+op.basename(config.date_folder)+": "+str(sci_obj_names))
 
-    spframes_orig = [j for i in spframes_lis for j in i] # gives just "sci" frames with correct LRS2_spec pointing
+    spframes_orig = [j for i in spframes_lis for j in i] # gives just "sci" frames with correct config.LRS2_spec pointing
     sframes_orig  = [j for i in sframes_lis  for j in i] # gives just "sci" frames with any pointing
     sci_exptime = list(set([float(s.exptime) for s in sframes_orig]))
 
     #Check that data is correct
     if len(spframes_orig) == 0:
-        print ("WARNING: Science frames were found for you science objects but not with LRS2-"+LRS2_spec+" pointings - these may just be sky frames")
+        print ("WARNING: Science frames were found for you science objects but not with LRS2-"+config.LRS2_spec+" pointings - these may just be sky frames")
 
     if all_copy:
         print ('    +++++++++++++++++++++++++++++++++++++++++++')
@@ -969,7 +969,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                         
     return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP
 
-def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
+def basicred(DIR_DICT, config.sci_objects, redux_dir, basic = False, dividepf = False,
               normalize = False, masterdark = False, masterarc = False, mastertrace = False):
     '''
     Running the basic reduction which includes:
@@ -992,7 +992,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     print ('*************************')
 
     #holds the VIRUS frames for all of the data 
-    vframes, first_run, ucam, LAMP_DICT, FLT_LAMP = initial_setup ( DIR_DICT, sci_objects, redux_dir )
+    vframes, first_run, ucam, LAMP_DICT, FLT_LAMP = initial_setup ( DIR_DICT, config.sci_objects, redux_dir )
 
     #inital reference frame
     f1 = vframes[0]
@@ -1039,7 +1039,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 print ('* REMOVE COSMIC RAYS (SCI IMAGES) FOR '+sp+' *')
                 print ('******************************************')
                 #if reducing old LRS2-Blue data: do not run rmcosmics on UV data(LL+LU), only orange(RL+RU)
-                if (LRS2_spec == 'B') and (first_run):
+                if (config.LRS2_spec == 'B') and (first_run):
                     if (sp == 'RL') or (sp == 'RU'):
                         rmcosmicfits ( sframes, sp )       # for sci frames - because this is slow
                 else:
@@ -1137,7 +1137,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 #If there are zero frames found then the arc lamp information provided is wrong
                 else:
                     print ("You did not provide the correct arc lamp data")
-                    sys.exit( "For LRS2-"+LRS2_spec+" You must provide "+lamp+" data")
+                    sys.exit( "For LRS2-"+config.LRS2_spec+" You must provide "+lamp+" data")
 
             #Combine each arc master frame for each lamp in LAMP_DICT into one masterarc
             #for the UV channel you need to add the Hg and FeAr (the second two) lamps together 
@@ -1200,7 +1200,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
 
     #Extend traces to detector edges for the far red channel. 
     #This will create a new mastertrace_502_R.fits and save the old one as mastertrace_502_R_orig.fits
-    if fix_chan and (LRS2_spec == 'R'):
+    if fix_chan and (config.LRS2_spec == 'R'):
         print ('**************************************')
         print ('* FIXING FAR RED CHANNEL MASTERTRACE *')
         print ('**************************************')
@@ -1221,7 +1221,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
 
     #Extend traces to detector edges for the orange channel. 
     #This will create a new mastertrace_501_R.fits and save the old one as mastertrace_501_R_orig.fits
-    if fix_chan and (LRS2_spec == 'B'):
+    if fix_chan and (config.LRS2_spec == 'B'):
         print ('*************************************')
         print ('* FIXING ORANGE CHANNEL MASTERTRACE *')
         print ('*************************************')
@@ -1243,7 +1243,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         print ('* SORTING SCIENCE FRAMES INTO OBJECT DIRECTORIES *')
         print ('**************************************************') 
         #Make a directory in sci folder for each science object    
-        for s in sci_objects:
+        for s in config.sci_objects:
             os.mkdir ( op.join( redux_dir, sci_dir, s ))
         for s in sframes:
             for side in SPECBIG:
@@ -1252,7 +1252,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 shutil.move (op.join(s.origloc, 'e.'+sname ), op.join( s.origloc, s.object ) )            
 
     # Run Deformer
-    if run_deformer:
+    if config.run_deformer:
         print ('*************************************************************************')
         print ('* RUNNING DEFORMER TO BUILD DISTORTION SOLUTION AND WAVELENGTH SOLUTION *')
         print ('*************************************************************************')
@@ -1264,16 +1264,16 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
 
         for side in SPECBIG:  
             #selects wavelength range and ref arc line for each channel
-            if (LRS2_spec == 'B') and (side == 'L'):
+            if (config.LRS2_spec == 'B') and (side == 'L'):
                 wave_range = '[3600,4700]'
                 ref_line = 6
-            if (LRS2_spec == 'B') and (side == 'R'):
+            if (config.LRS2_spec == 'B') and (side == 'R'):
                 wave_range = '[4600,7000]'
                 ref_line = 7
-            if (LRS2_spec == 'R') and (side == 'L'):
+            if (config.LRS2_spec == 'R') and (side == 'L'):
                 wave_range = '[6500,8500]'
                 ref_line = 3
-            if (LRS2_spec == 'R') and (side == 'R'):
+            if (config.LRS2_spec == 'R') and (side == 'R'):
                 wave_range = '[8000,10500]'
                 ref_line = 1
             #copy the lines file used to this directory 
@@ -1285,7 +1285,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             deformer ( mastertrace, masterarc, linefile, wave_range, ref_line, deformeropts)
     
     # Run sky subtraction            
-    if subsky:  
+    if config.subsky:  
         print ('************************************************')
         print ('* PERFORMING SKY SUBTRACTION ON SCIENCE FRAMES *')
         print ('************************************************')
@@ -1301,7 +1301,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             subtractsky(Sfiles,side,distmodel,fibermodel,subskyopts)
 
     # Run fiberextract
-    if fiberextract:  
+    if config.fiberextract:  
         print ('****************************************')
         print ('* EXTRACTING SPECTRA IN SCIENCE FRAMES *')
         print ('****************************************')
@@ -1310,22 +1310,22 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         if len(dist_files) == 0:
             sys.exit("You must run deformer before you can run fiber extract")
 
-        if wl_resample:
+        if config.wl_resample:
             print ('    ++++++++++++++++++++++++++++')
             print ('    + Resampling in Wavelength + ')
             print ('    ++++++++++++++++++++++++++++')
             for side in SPECBIG:
                 #for each channel selects correct wavlength range and dw
-                if (LRS2_spec == 'B') and (side == 'L'):
+                if (config.LRS2_spec == 'B') and (side == 'L'):
                     wave_range = '3643,4658'
                     dw = '0.49'
-                if (LRS2_spec == 'B') and (side == 'R'):
+                if (config.LRS2_spec == 'B') and (side == 'R'):
                     wave_range = '4600,7000'
                     dw = '1.2'
-                if (LRS2_spec == 'R') and (side == 'L'):
+                if (config.LRS2_spec == 'R') and (side == 'L'):
                     wave_range = '6432,8451'
                     dw = '0.978'
-                if (LRS2_spec == 'R') and (side == 'R'):
+                if (config.LRS2_spec == 'R') and (side == 'R'):
                     wave_range = '8324,10565'
                     dw = '1.129'
 
@@ -1359,11 +1359,11 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             shutil.move(l, op.join(redux_dir,l))
 
     # Run mkcube
-    if makecube:
+    if config.makecube:
         print ('***********************')
         print ('* BUILDING DATA CUBES *')
         print ('***********************')
-        for s in sci_objects:
+        for s in config.sci_objects:
         #cd inside of the science directory 
             location_prefix = redux_dir + "/" + sci_dir + "/" + s + "/"
             os.chdir(location_prefix)
@@ -1392,13 +1392,13 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 ditherfile = 'dither_LRS2_' + side + '.txt'
 
                 #choose correct mapping file for the channel you are using
-                if   (LRS2_spec == 'B') and (side == 'L'):
+                if   (config.LRS2_spec == 'B') and (side == 'L'):
                     IFUfile = mapdir+'LRS2_B_UV_mapping.txt'
-                elif (LRS2_spec == 'B') and (side == 'R'):
+                elif (config.LRS2_spec == 'B') and (side == 'R'):
                     IFUfile = mapdir+'LRS2_B_OR_mapping.txt'
-                elif (LRS2_spec == 'R') and (side == 'L'):
+                elif (config.LRS2_spec == 'R') and (side == 'L'):
                     IFUfile = mapdir+'LRS2_R_NR_mapping.txt'
-                elif (LRS2_spec == 'R') and (side == 'R'):
+                elif (config.LRS2_spec == 'R') and (side == 'R'):
                     IFUfile = mapdir+'LRS2_R_FR_mapping.txt'
 
                 psf      = 1.5
@@ -1410,17 +1410,17 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 ditherinfo.writeHeader(ditherf)
                 ditherinfo.writeDither(ditherf,basename,"../mastertrace_"+str(uca)+'_'+side, 0.0, 0.0, psf, 1.00, airmass)
 
-                mkcube(IFUfile,ditherfile,outname,diffAtmRef,cubeopts) 
+                mkcube(IFUfile,ditherfile,outname,config.diffAtmRef,cubeopts) 
 
             #cd back into the reduction directory 
             os.chdir('../../../')
 
     # Run collapse cube
-    if collapseCube:
+    if config.collapseCube:
         print ('***************************************')
         print ('* COLLAPSING DATA CUBE TO BUILD IMAGE *')
         print ('***************************************')
-        for s in sci_objects:
+        for s in config.sci_objects:
             #cd into the science directory 
             location_prefix = redux_dir + "/" + sci_dir + "/" + s + "/" 
             Cufiles = glob.glob(location_prefix + "CuFeR*_sci_*.fits")
@@ -1431,8 +1431,8 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 sys.exit("You must build data cubes from wavelength resampled, fiber extracted data before running collapse cube")
 
             #user defined wavelength range to collapse cube 
-            low_wave  = col_wave_range[0]
-            high_wave = col_wave_range[1]
+            low_wave  = config.col_wave_range[0]
+            high_wave = config.col_wave_range[1]
 
             #track number of cubes used in order to inform user if their values fall out of bounds and no images made
             num_cubes = 0
@@ -1452,13 +1452,13 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 Side  = hdr['CCDPOS']
 
                 #Find the name of the channel for this data cube
-                if   (LRS2_spec == 'B') and (Side == 'L'):
+                if   (config.LRS2_spec == 'B') and (Side == 'L'):
                     spec_chan = 'UV'
-                elif (LRS2_spec == 'B') and (Side == 'R'):
+                elif (config.LRS2_spec == 'B') and (Side == 'R'):
                     spec_chan = 'orange'
-                elif (LRS2_spec == 'R') and (Side == 'L'):
+                elif (config.LRS2_spec == 'R') and (Side == 'L'):
                     spec_chan = 'red'
-                elif (LRS2_spec == 'R') and (Side == 'R'):
+                elif (config.LRS2_spec == 'R') and (Side == 'R'):
                     spec_chan = 'far-red'
 
                 #build wavelength solution and find min and max wavelength of that solution
@@ -1503,12 +1503,12 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             #if num_cubes is 0: all cubes out of wavelength range of users choice 
             if num_cubes == 0:
                 print ("Wavelength range you choose for collapse cube is out of range")
-                sys.exit("This LRS2-"+LRS2_spec+" data set ranges between "+str(np.amin(min_wave_set))+" and "+str(np.amax(max_wave_set))+" Angstroms")
+                sys.exit("This LRS2-"+config.LRS2_spec+" data set ranges between "+str(np.amin(min_wave_set))+" and "+str(np.amax(max_wave_set))+" Angstroms")
 
     return vframes
     
 def main():
-    frames = basicred( DIR_DICT, sci_objects, redux_dir, basic = basic, dividepf = dividepf,
+    frames = basicred( DIR_DICT, config.sci_objects, redux_dir, basic = basic, dividepf = dividepf,
                       normalize = normalize, masterdark = masterdark, masterarc = masterarc, mastertrace = mastertrace )                 
     
 if __name__ == '__main__':
