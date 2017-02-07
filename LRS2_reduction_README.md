@@ -39,7 +39,7 @@
 - Here is an example filename: 20161202T074404.6_056LL_cmp.fits
 - The part before the first underscore (20161202T074404.6) is the date and time the image was taken (the 'T' separates the date and time)
 
-    (format: yyyymmddThhmmss.s)
+		(format: yyyymmddThhmmss.s)
 
 - The 3 digit number after the first underscore (056) tells you the IFU slot ID for the unit. This tells you which LRS2 unit this is from
 
@@ -54,8 +54,8 @@
 		LRS2-R right side: far-red channel (066R)
 
 - The letter after that will either be 'L' or 'U' for lower or upper. This tells with amplifier of that detector it is. 
-		* NOTE: basic reduction will orient U and L properly and combine them.
-		* So after reduction instead of LU, LL, RU, RL you will just have L and R images. 
+   * NOTE: basic reduction will orient U and L properly and combine them.
+   * So after reduction instead of LU, LL, RU, RL you will just have L and R images. 
 - The part after the second underscore tells you the image type. There are 5 image types:
 
 		zro - bias
@@ -74,7 +74,7 @@
 
 - If you don't have an account on TACC you need to set one up.
 
-		go to:  https://portal.tacc.utexas.edu/
+		go to:  [https://portal.tacc.utexas.edu/]
 		Then, click: Create a TACC account
 
 - Send Karl (gebhardt@astro.as.utexas.edu) your username so he can add you to the HETDEX group.
@@ -109,12 +109,12 @@
 
 - Source your "~/.bashrc" file to make the changes 
 
-	>>> source ~/.bashrc
+		>>> source ~/.bashrc
 
 - Change permissions of your home directory for accesibility
 
-	>>> cd
-	>>> chmod a+rx ../username
+		>>> cd
+		>>> chmod a+rx ../username
 
 -----------------------------------------------
 3) Obtaining reduction script and config files: 
@@ -122,8 +122,8 @@
 
 - Inside your home directory make a copy of the LRS2_reduction folder with the following commands: 
 
-	>>> cd 
-	>>> cp -r /home/04195/bindahl/LRS2_reduction ./ 
+		>>> cd 
+		>>> cp -r /home/04195/bindahl/LRS2_reduction ./ 
 
 - You should now have a folder in your home directory called LRS2_reduction. This folder contains the following files and folder:
 
@@ -131,10 +131,10 @@
   2. lrs2_config.py 			 - This is the config file where the user defines the data and opts for their reduction
   3. cosmics.py 				 - This is the script that runs L.A.comsic in the reduction (http://obswww.unige.ch/~tewes/cosmics_dot_py/)
   4. lrs2_config 				 - This is a folder that contains all of the configurations files needed for LRS2 reduction 
-   * lines_files	 - These files defined the pixel and wavelength to find the arc lines for building the wavelength solution
-   * mapping_files	 - These files contain the mapping of the fibers onto the field for building data cubes
-   * pixel_flats	 - These files are the pixels flats for each CCD that can be optionally divided during reduction
-   * FR_longCals	 - This are 1800sec FeAr exposures used for pinning down the wavelength solution for the far-red channel
+     i.   lines_files	 - These files defined the pixel and wavelength to find the arc lines for building the wavelength solution
+     ii.  mapping_files	 - These files contain the mapping of the fibers onto the field for building data cubes
+     iii. pixel_flats	 - These files are the pixels flats for each CCD that can be optionally divided during reduction
+     iv.  FR_longCals	 - This are 1800sec FeAr exposures used for pinning down the wavelength solution for the far-red channel
 
 --------------------------
 4) Running LRS2 reduction:
@@ -146,7 +146,7 @@
 - save the changes to lrs2_config.py 
 - run reduction_wrapper_lrs2.py (if run outside of LRS2_reduction you must give the path to reduction_wrapper_lrs2.py)
 
-	>>> python reduction_wrapper_lrs2.py  
+		>>> python reduction_wrapper_lrs2.py  
 
 ===============================================
 ## Running LRS2 reduction on your own computer 
@@ -165,8 +165,8 @@
 	- You must recompile CURE to make the change 
 		- cd into your cure directory and run the following
 
-			>>> make clean
-			>>> make install 
+				>>> make clean
+				>>> make install 
 
 - Add this to your "~/.bashrc" file to set the path to your CURE bin:
 
@@ -186,7 +186,7 @@
 - You must scp your data off of Maverick from /work/03946/hetdex/maverick/ onto your computer
 - It is important that you maintain the same folder structure which is: 
 
-	date_folder/lrs2/lrs000####/exp##/lrs2/*.fits 
+		date_folder/lrs2/lrs000####/exp##/lrs2/*.fits 
 
 - When running the reduction you will be defining the path to the date_folder in which to find your data 
 
@@ -222,13 +222,13 @@
 - You will see a bunch of versions of your science files with different prefixs appended to there name
 - After each step of the reduction a letter is added to the filename as follows:
 
-  pses 	- These are files that have been run through basic reduction 
-  S 	- These are files that have also been sky subtracted 
-  Fe 	- These are files that have been fiber extracted WITHOUT wavelength resampling 
-  FeR 	- These are files that have been fiber extracted WITH wavelength resampling
-  Cu 	- These files are data cubes 
-  Col 	- These files are collapsed data cubes 
-  e. 	- These are the error files for all of these frames
+		pses 	- These are files that have been run through basic reduction 
+		S       - These are files that have also been sky subtracted 
+		Fe 	    - These are files that have been fiber extracted WITHOUT wavelength resampling 
+		FeR 	- These are files that have been fiber extracted WITH wavelength resampling
+		Cu 	    - These files are data cubes 
+		Col 	- These files are collapsed data cubes 
+		e. 	    - These are the error files for all of these frames
 
 - As an example for the file: CuFeRSpses20160731T094822.4_056_sci_R.fits
 	- The pses shows that it has been through basic reduction (pses), sky subtracted (S), 
