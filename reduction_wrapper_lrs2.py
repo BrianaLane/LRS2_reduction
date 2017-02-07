@@ -109,9 +109,9 @@ else:
 # Defining which functions to run #
 ###################################
 
-#if config.basic reduction is run need to specify specific routines to run 
+#if basic reduction is run need to specify specific routines to run 
 # divide pixel flat and masterdark are not being used now
-if config.config.basic:
+if config.basic:
     rmcosmics       = config.rmCosmics 
     fix_chan        = True
     dividepf        = config.dividePixFlt
@@ -131,7 +131,7 @@ else:
     mastertrace     = False
     sort_sci        = False
 
-# This makes sure that the redux folder is only overwritten if the user chooses to run config.basic reduction
+# This makes sure that the redux folder is only overwritten if the user chooses to run basic reduction
 # If you user only wants to run deformer, skysubtract, fiberextract, or mkcube it used the data in redux 
 if config.basic:
     all_copy = True
@@ -705,7 +705,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     #################
     # Define SPECID #
     #################
-    #first frames to pull config.basic header information 
+    #first frames to pull basic header information 
     a1 = aframes[0]
 
     #Finds the date of the data taken to know if it is the new or old LRS2-B
@@ -970,10 +970,10 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                         
     return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP
 
-def basicred(DIR_DICT, sci_objects, redux_dir, config.basic = False, dividepf = False,
+def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
               normalize = False, masterdark = False, masterarc = False, mastertrace = False):
     '''
-    Running the config.basic reduction which includes:
+    Running the basic reduction which includes:
     1) Overscan subtract and trim all frames
     2) Create blank error frame with readnoise in it
     3) Remove cosmic rays from sci frames (user option)
@@ -1014,7 +1014,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, config.basic = False, dividepf = 
     else:
         shutil.copy ( os.path.dirname(os.path.realpath(__file__))+'/lrs2_config.py', redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py' )
 
-    # Run config.basic reduction
+    # Run basic reduction
     if config.basic:
         for sp in SPEC:
             trimsec = f1.trimsec # Trimsec assumed to be the same for all frames of a given amp
@@ -1257,11 +1257,11 @@ def basicred(DIR_DICT, sci_objects, redux_dir, config.basic = False, dividepf = 
         print ('*************************************************************************')
         print ('* RUNNING DEFORMER TO BUILD DISTORTION SOLUTION AND WAVELENGTH SOLUTION *')
         print ('*************************************************************************')
-        #check that config.basic has been run 
+        #check that basic has been run 
         trace_files = glob.glob(op.join(redux_dir,'mastertrace*'))
         arc_files   = glob.glob(op.join(redux_dir,'masterarc*'))
         if len(trace_files) == 0 or len(arc_files) == 0:
-            sys.exit("You must run config.basic reduction before you can run deformer")
+            sys.exit("You must run basic reduction before you can run deformer")
 
         for side in SPECBIG:  
             #selects wavelength range and ref arc line for each channel
@@ -1509,7 +1509,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, config.basic = False, dividepf = 
     return vframes
     
 def main():
-    frames = basicred( DIR_DICT, config.sci_objects, redux_dir, config.basic = config.basic, dividepf = dividepf,
+    frames = basicred( DIR_DICT, config.sci_objects, redux_dir, basic = config.basic, dividepf = dividepf,
                       normalize = normalize, masterdark = masterdark, masterarc = masterarc, mastertrace = mastertrace )                 
     
 if __name__ == '__main__':
