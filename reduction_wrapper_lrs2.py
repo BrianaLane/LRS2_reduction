@@ -5,7 +5,7 @@ Created on Friday April  8 02:10:02 2016
 Reduces LRS2 data for either the blue or red channels
 This script reads user parameters from lrs2_config.py 
 
-@author: gregz, brianaindahl
+@author: brianaindahl, gregz
 """
 from __future__ import print_function
 
@@ -24,6 +24,7 @@ from os import environ
 import re
 import string
 import cosmics 
+import argparse as ap
 #from lrs2_config import * 
 
 #blu 370-470nm
