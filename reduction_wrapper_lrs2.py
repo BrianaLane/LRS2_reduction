@@ -25,6 +25,7 @@ import re
 import string
 import cosmics 
 import argparse as ap
+import importlib
 #from lrs2_config import * 
 
 #blu 370-470nm
