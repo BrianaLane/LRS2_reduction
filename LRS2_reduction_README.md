@@ -111,7 +111,7 @@
 
 		>>> source ~/.bashrc
 
-- Change permissions of your home directory for accesibility
+- Change permissions of your home directory (cd) for accesibility
 
 		>>> cd
 		>>> chmod a+rx ../username
@@ -120,21 +120,21 @@
 3) Obtaining reduction script and config files: 
 -----------------------------------------------
 
-- Inside your home directory make a copy of the LRS2_reduction folder with the following commands: 
+- Inside your work directory (cdw) make a copy of the LRS2_reduction folder with the following commands: 
 
-		>>> cd 
+		>>> cdw 
 		>>> cp -r /home/04195/bindahl/LRS2_reduction ./ 
 
-- You should now have a folder in your home directory called LRS2_reduction. This folder contains the following files and folder:
+- You should now have a folder in your work directory called LRS2_reduction. This folder contains the following files and folder:
 
 	1. reduction_wrapper_lrs2.py - This is the folder that runs the reductions. You should never have to edit this file. 
 	2. lrs2_config.py 			 - This is the config file where the user defines the data and opts for their reduction
 	3. cosmics.py 				 - This is the script that runs L.A.comsic in the reduction (http://obswww.unige.ch/~tewes/cosmics_dot_py/)
 	4. lrs2_config 				 - This is a folder that contains all of the configurations files needed for LRS2 reduction 
-	  * lines_files	 - These files defined the pixel and wavelength to find the arc lines for building the wavelength solution
+	  * lines_files	     - These files defined the pixel and wavelength to find the arc lines for building the wavelength solution
 	  * mapping_files	 - These files contain the mapping of the fibers onto the field for building data cubes
-	  * pixel_flats	 - These files are the pixels flats for each CCD that can be optionally divided during reduction
-	  * FR_longCals	 - This are 1800sec FeAr exposures used for pinning down the wavelength solution for the far-red channel
+	  * pixel_flats	     - These files are the pixels flats for each CCD that can be optionally divided during reduction
+	  * longExpCals	     - This are 1800sec FeAr exposures used for pinning down the wavelength solution for the far-red channel
 
 --------------------------
 4) Running LRS2 reduction:
@@ -146,7 +146,15 @@
 - save the changes to lrs2_config.py 
 - run reduction_wrapper_lrs2.py (if run outside of LRS2_reduction you must give the path to reduction_wrapper_lrs2.py)
 
-		>>> python reduction_wrapper_lrs2.py  
+		>>> python reduction_wrapper_lrs2.py 
+
+- When the reduction script runs it will automatically save a copy of the config file used in the redux directory
+- You can also choose to run the reduction script with a different config file 
+	* For example you could make your own config file copies with settings you want to save 
+	* or you can use the saved config files in one of your redux directories. 
+- To run the reduction script with a different config file:
+
+		>>> python reduction_wrapper_lrs2.py -config "path/name_of_config.py"
 
 ===============================================
 # Running LRS2 reduction on your own computer 
