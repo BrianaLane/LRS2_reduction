@@ -15,7 +15,7 @@
 	- NOTE: whether you run reduction on TACC or you own computer you will need a TACC account to access your data.
 
 =================================================
-## Understanding your data and the data stucture 
+# Understanding your data and the data stucture 
 =================================================
 
 ------------------------------
@@ -65,7 +65,7 @@
 		sci - science frames (twilight flats are also sci)
 
 ================================================
-## Running LRS2 reduction on TACC - RECOMMENDED 
+# Running LRS2 reduction on TACC - RECOMMENDED 
 ================================================
 
 -------------------------------------------------------
@@ -74,7 +74,7 @@
 
 - If you don't have an account on TACC you need to set one up.
 
-		go to:  [https://portal.tacc.utexas.edu/]
+		go to:  <https://portal.tacc.utexas.edu/>
 		Then, click: Create a TACC account
 
 - Send Karl (gebhardt@astro.as.utexas.edu) your username so he can add you to the HETDEX group.
@@ -149,7 +149,7 @@
 		>>> python reduction_wrapper_lrs2.py  
 
 ===============================================
-## Running LRS2 reduction on your own computer 
+# Running LRS2 reduction on your own computer 
 ===============================================
 
 -------------------------------------------
@@ -198,7 +198,7 @@
 - The one difference is you will scp the LRS2_reduction directory onto your computer instead of copying it into your TACC directory
 
 =========================================
-## Understanding reduction data products 
+# Understanding reduction data products 
 =========================================
 
 -------------------------------------------
