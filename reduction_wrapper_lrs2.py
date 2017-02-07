@@ -156,7 +156,7 @@ traceopts       = "--maxmem 1024 -s -t -m -k 2.8"
 deformeropts    = "-p 7 -n 4 -C 10 --debug --dump_psf_data"
 subskyopts      = "-J --output-both -w "+str(config.window_size)+" -k "+str(config.sky_kappa[0])+','+str(config.sky_kappa[1])+" -m "+str(config.smoothing)+" -T "+str(config.sn_thresh)
 fibextractopts  = "-P"
-cubeopts        = "-a "+str(config.sky_sampling)+" -k "+str(max_distance)+" -s "+str(config.cube_sigma)
+cubeopts        = "-a "+str(config.sky_sampling)+" -k "+str(config.max_distance)+" -s "+str(config.cube_sigma)
 
 #########################
 # Defining data folders #
