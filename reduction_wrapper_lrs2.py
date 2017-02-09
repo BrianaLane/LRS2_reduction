@@ -969,7 +969,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             #skyframe_objs.append[skyframe.object]
 
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
-        print ("Objects used for sky frames: "+skyframe_objs)
+        print ("Objects used for sky frames: "+str(skyframe_objs))
         #now the sky frames are added to the science frames for reduction
         sframes_orig = sframes_orig + skyframes_orig
 
