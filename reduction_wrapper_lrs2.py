@@ -956,7 +956,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             sky_side == 'B'
         else:
             sky_side == 'R'
-        allskyframes = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and (a.cal_side = sky_side)]
+        allskyframes = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and (a.cal_side == sky_side)]
         skyexptime = [a.exptime for a in allskyframes] #finds exposure time for all of the sky frames
 
         skyframes_orig = []
