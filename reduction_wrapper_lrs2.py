@@ -237,6 +237,7 @@ class VirusFrame:
             self.orggain     = hdulist[0].header['GAIN']
             self.orgrdnoise  = hdulist[0].header['RDNOISE']
             self.exptime     = hdulist[0].header['EXPTIME']
+            self.side        = hdulist[0].header['CCDPOS']
 
             #for cal data: object will have R or B appended for the liquid light guide used 
             #for sci data: object will have R or B appended for the unit that was pointed at the sci target
@@ -971,7 +972,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("Objects used for sky frames: "+str(skyframe_objs))
         for f in skyframes_orig:
-            print ("Sky frames: "+str(f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits'))
+            print ("Sky frames: "+str(f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + f.side + '.fits'))
         #now the sky frames are added to the science frames for reduction
         sframes_orig = sframes_orig + skyframes_orig
 
