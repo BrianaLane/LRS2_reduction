@@ -970,6 +970,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("Objects used for sky frames: "+str(skyframe_objs))
+        for i in skyframes_orig:
+            print ("Sky frames: "+str(skyframes_orig[i].basename))
         #now the sky frames are added to the science frames for reduction
         sframes_orig = sframes_orig + skyframes_orig
 
@@ -1007,7 +1009,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                 #must copy all file to directories first
                 for f in file_loc_dir[i]:  
                     for amp in SPEC: 
-                        shutil.copy ( op.join ( f.origloc, f.actionbase[amp] + f.basename + '_' + f.ifuslot + amp + '_' + f.type + '.fits'), op.join ( redux_dir, DIR_DICT[i] ) )
+                        shutil.copy( op.join ( f.origloc, f.actionbase[amp] + f.basename + '_' + f.ifuslot + amp + '_' + f.type + '.fits'), op.join ( redux_dir, DIR_DICT[i] ) )
                 for f in file_loc_dir[i]:        
                     a = VirusFrame( op.join( redux_dir, DIR_DICT[i], op.basename ( f.filename ) ) ) 
                     vframes.append(copy.deepcopy(a))
