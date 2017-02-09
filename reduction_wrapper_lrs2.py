@@ -674,7 +674,7 @@ def extend_trace_start(data,start_col,window):
     #returns the chip array with this correction 
     return data          
 
-def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None, sky_side = None):
+def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     '''
     Running the initial setup which includes:
     1) Building a standard reduction folder structure
@@ -971,6 +971,9 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None, sky_s
             #now the sky frames are added to the science frames for reduction
             sframes_orig = sframes_orig + skyframes_orig
 
+    else:
+        sky_side = None
+
     #Check that data is correct
     if len(spframes_orig) == 0:
         print ("WARNING: Science frames were found for your science objects but not with LRS2-"+config.LRS2_spec+" pointings - these may just be sky frames")
@@ -1011,7 +1014,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None, sky_s
                     a = VirusFrame( f.filename ) 
                     vframes.append(copy.deepcopy(a))
                         
-    return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP
+    return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP, sky_side
 
 
 def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
@@ -1037,7 +1040,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     print ('*************************')
 
     #holds the VIRUS frames for all of the data 
-    vframes, first_run, ucam, LAMP_DICT, FLT_LAMP = initial_setup ( DIR_DICT, config.sci_objects, redux_dir, sky_side )
+    vframes, first_run, ucam, LAMP_DICT, FLT_LAMP, sky_side = initial_setup ( DIR_DICT, config.sci_objects, redux_dir )
 
     #inital reference frame
     f1 = vframes[0]
