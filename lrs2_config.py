@@ -26,11 +26,11 @@ date_folder     = "/work/03946/hetdex/maverick/20160731"
 #Take off the '_R' or '_B' at the end of the object name. The script will choose the correct one based on LRS2_spec you choose
 sci_objects 	= ["SHELA_z4gal_0503678",]	
 
-#If you want to use a sky frame for sky subtraction add the object name of the sky frame you want to use
-#If a sky object is added to the list the frame will be used for sky subtraction
-#If the list is left blank fibers in the science frame are used to build the sky model
-#It is recommended to use sky frames if you have a bright soure or a source that fills the field 
-sky_frames 		= [] 
+#If you want to use a sky frame for sky subtraction set this to True
+#This is only recommended for very bright object or extened sources that fill most of the field
+#If False fibers in the science frame are used to build the sky model
+#Script automatically finds sky frame from night observations and scales exposure
+sky_frames 		= False 
 
 #Make sure to change this so it points to the lrs2_config folder in your LRS2_reduction directory
 configdir       = "/home/04195/bindahl/LRS2_reduction/lrs2_config"	#path to your lrs2_config folder

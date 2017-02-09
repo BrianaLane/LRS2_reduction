@@ -469,7 +469,7 @@ def rmcosmicfits(frames, amp):
         im_RN = header['RDNOISE']
 
         # Build the object :
-        c = cosmics.cosmicsimage(array, gain=im_gain, readnoise=im_RN, sigclip = 7.0, sigfrac = 0.3, objlim = 7.0)
+        c = cosmics.cosmicsimage(array, gain=im_gain, readnoise=im_RN, satlevel = 65535.0, sigclip = 7.0, sigfrac = 0.3, objlim = 7.0)
         # There are other options, check the manual...
 
         # Run the full artillery :
@@ -609,8 +609,24 @@ def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
     #[f.addbase('S', side) for f in frames]
 
     return command
+
+
+def subtractskyframe(sciframe,skyframe,side,skyscale,distmodel,fibermodel,opts):
     
+    scifile = op.join ( sciframe.origloc, 'sci', sciframe.object, sciframe.actionbase[side] + sciframe.basename + '_' + sciframe.ifuslot + '_' + sciframe.type + '_' + side + '.fits') 
+    skyfile = op.join ( skyframe.origloc, 'sci', skyframe.object, skyframe.actionbase[side] + skyframe.basename + '_' + skyframe.ifuslot + '_' + skyframe.type + '_' + side + '.fits') 
+
+    skymaster = '-X ' + skyfile 
+
+    command = 'subtractsky %s --x %s -X %s -D %s -F %s -d %s -f %s %s' % (opts,skyscale,skyfile, distmodel, fibermodel, distmodel,fibermodel,f)  
+
+    run_cure_command( command, 0 )
+        
+    #[f.addbase('S', side) for f in frames]
+
+    return command
     
+
 def fibextract_Resample(frames,distmodel,fibermodel,wave_range,dw,opts):
 
     for f in frames:
@@ -766,7 +782,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     ############################################
     # Find calibration data and science images #
     ############################################
-    #from the vframes makes lists of files vframes according to type and specid (ucam)
+    #from the aframes makes lists of files vframes according to type and specid (ucam)
     tframes  = [a for a in aframes if (a.specid == ucam) and (a.cal_side == None or a.cal_side == config.LRS2_spec)] # gives all frames 
 
     #------------#
@@ -911,6 +927,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
     if len(config.sci_objects) == 0:
         config.sci_objects = sci_obj_names
+        print ("No science objects choosen in config so all science frames will be reduced")
+        print (config.sci_objects)
 
     sframes_lis = []
     spframes_lis = []
@@ -926,11 +944,36 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
     spframes_orig = [j for i in spframes_lis for j in i] # gives just "sci" frames with correct config.LRS2_spec pointing
     sframes_orig  = [j for i in sframes_lis  for j in i] # gives just "sci" frames with any pointing
-    sci_exptime = list(set([float(s.exptime) for s in sframes_orig]))
+    sci_exptime = list(set([float(s.exptime) for s in sframes_orig])) #finds exposure time for all the sci frames
+
+    #Finds sky frames if the use choose to use sky frames in the config file
+    if use_sky_frames:
+        if first_run == True:
+            sys.exit("Sky frame subtraction cannot be done with shared-risk LRS2_data")
+
+        #looks for frames with same ucam as specid but the objects names show pointing to other side. These will be sky frames
+        if config.LRS2_spec == 'R':
+            sky_side == 'B'
+        else:
+            sky_side == 'R'
+        allskyframes = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and (a.cal_side = sky_side)]
+        skyexptime = [a.exptime for a in allskyframes] #finds exposure time for all of the sky frames
+
+        skyframes_orig = []
+        skyframe_objs  = []
+        #loops through and finds the sky frame with the clostest exposure time to each science frame expsoure time
+        for s in sci_exptime:
+            closest_index = min(range(len(skyexptime)), key=lambda i: abs(skyexptime[i]-s))
+            skyframe = allskyframes[closest_index]
+            skyframes_orig.append[skyframe]
+            #skyframe_objs.append[skyframe.object]
+
+            #now the sky frames are added to the science frames for reduction
+            sframes_orig = sframes_orig + skyframes_orig
 
     #Check that data is correct
     if len(spframes_orig) == 0:
-        print ("WARNING: Science frames were found for you science objects but not with LRS2-"+config.LRS2_spec+" pointings - these may just be sky frames")
+        print ("WARNING: Science frames were found for your science objects but not with LRS2-"+config.LRS2_spec+" pointings - these may just be sky frames")
 
     if all_copy:
         print ('    +++++++++++++++++++++++++++++++++++++++++++')
@@ -969,6 +1012,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     vframes.append(copy.deepcopy(a))
                         
     return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP
+
 
 def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
               normalize = False, masterdark = False, masterarc = False, mastertrace = False):
@@ -1295,11 +1339,32 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         if len(dist_files) == 0:
             sys.exit("You must run deformer before you can run sky subtraction")
 
-        for side in SPECBIG:
-            distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
-            fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
-            Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "p*_sci_"+side+".fits")
-            subtractsky(Sfiles,side,distmodel,fibermodel,subskyopts)
+        if use_sky_frames:
+            print ('    +++++++++++++++++++')
+            print ('    + Using Sky Frame +')
+            print ('    +++++++++++++++++++')
+            for side in SPECBIG:            
+                #Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "p*_sci_"+side+".fits")
+                skyframes = [s for s in sframes if s.cal_side == sky_side]
+                skytimes  = [s.exptime for s in skyframes]
+                sciframes = [s for s in sframes if s.cal_side == config.LRS2_spec]
+                for s in sciframes:
+                    distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
+                    fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
+                    #find the sky frame with the closest exposure time 
+                    closest_index = min(range(len(skytimes)), key=lambda i: abs(float(skytimes[i])-float(s.exptime)))
+                    skyframe = skyframes[closest_index]
+                    #define the scale factor to scale up sky exposure to to deal with different expsosure times between sky and sci frames
+                    #scale factor for the sky frame is the sci exposure time divided by they sky frame exposure time
+                    skyscale = float(s.exptime)/float(skytimes[closest_index])
+                    subtractskyframe(s,skyframe,side,skyscale,distmodel,fibermodel,subskyopts)
+
+        else:
+            for side in SPECBIG:
+                distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
+                fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
+                Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "p*_sci_"+side+".fits")
+                subtractsky(Sfiles,side,distmodel,fibermodel,subskyopts)
 
     # Run fiberextract
     if config.fiberextract:  
@@ -1312,9 +1377,6 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             sys.exit("You must run deformer before you can run fiber extract")
 
         if config.wl_resample:
-            print ('    ++++++++++++++++++++++++++++')
-            print ('    + Resampling in Wavelength + ')
-            print ('    ++++++++++++++++++++++++++++')
             for side in SPECBIG:
                 #for each channel selects correct wavlength range and dw
                 if (config.LRS2_spec == 'B') and (side == 'L'):
