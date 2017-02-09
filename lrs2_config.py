@@ -30,7 +30,7 @@ sci_objects 	= ["SHELA_z4gal_0503678",]
 #This is only recommended for very bright object or extened sources that fill most of the field
 #If False fibers in the science frame are used to build the sky model
 #Script automatically finds sky frame from night observations and scales exposure
-sky_frames 		= False 
+use_sky_frames 		= False 
 
 #Make sure to change this so it points to the lrs2_config folder in your LRS2_reduction directory
 configdir       = "/home/04195/bindahl/LRS2_reduction/lrs2_config"	#path to your lrs2_config folder

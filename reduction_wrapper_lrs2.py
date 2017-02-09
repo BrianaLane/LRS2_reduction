@@ -947,7 +947,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     sci_exptime = list(set([float(s.exptime) for s in sframes_orig])) #finds exposure time for all the sci frames
 
     #Finds sky frames if the use choose to use sky frames in the config file
-    if use_sky_frames:
+    if config.use_sky_frames:
         if first_run == True:
             sys.exit("Sky frame subtraction cannot be done with shared-risk LRS2_data")
 
@@ -1339,7 +1339,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         if len(dist_files) == 0:
             sys.exit("You must run deformer before you can run sky subtraction")
 
-        if use_sky_frames:
+        if config.use_sky_frames:
             print ('    +++++++++++++++++++')
             print ('    + Using Sky Frame +')
             print ('    +++++++++++++++++++')
