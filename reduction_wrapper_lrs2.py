@@ -965,7 +965,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         for s in sci_exptime:
             closest_index = min(range(len(skyexptime)), key=lambda i: abs(skyexptime[i]-s))
             skyframe = allskyframes[closest_index]
-            skyframes_orig.append[skyframe]
+            skyframes_orig.append(skyframe)
             #skyframe_objs.append[skyframe.object]
 
             #now the sky frames are added to the science frames for reduction
