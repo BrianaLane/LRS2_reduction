@@ -966,7 +966,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             closest_index = min(range(len(skyexptime)), key=lambda i: abs(skyexptime[i]-s))
             skyframe = allskyframes[closest_index]
             skyframes_orig.append(skyframe)
-            skyframe_objs.append[skyframe.object]
+            skyframe_objs.append(skyframe.object)
 
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("Objects used for sky frames: "+str(skyframe_objs))
