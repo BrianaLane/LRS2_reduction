@@ -614,8 +614,8 @@ def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
 
 def subtractskyframe(sciframe,skyframe,side,skyscale,distmodel,fibermodel,opts):
     
-    scifile = op.join ( redux_dir, 'sci', sciframe.object, sciframe.actionbase[side] + sciframe.basename + '_' + sciframe.ifuslot + '_' + sciframe.type + '_' + side + '.fits') 
-    skyfile = op.join ( redux_dir, 'sci', skyframe.object, skyframe.actionbase[side] + skyframe.basename + '_' + skyframe.ifuslot + '_' + skyframe.type + '_' + side + '.fits') 
+    scifile = op.join ( redux_dir, sci_dir, sciframe.object, sciframe.actionbase[side] + sciframe.basename + '_' + sciframe.ifuslot + '_' + sciframe.type + '_' + side + '.fits') 
+    skyfile = op.join ( redux_dir, sci_dir, skyframe.object, skyframe.actionbase[side] + skyframe.basename + '_' + skyframe.ifuslot + '_' + skyframe.type + '_' + side + '.fits') 
 
     skymaster = '-X ' + skyfile 
 
@@ -1499,15 +1499,17 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         print ('***************************************')
         print ('* COLLAPSING DATA CUBE TO BUILD IMAGE *')
         print ('***************************************')
+
+        numCufiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "CuFeR*_sci_*.fits")
+        #makes sure there are actually data cubes made from wavelength resampled, fiber extracted data in the sci directory 
+        #If data cubes were made from fiber extracted fibers that do not wl resample they do not contain WCS info needed
+        if len(numCufiles) == 0:
+            sys.exit("You must build data cubes from wavelength resampled, fiber extracted data before running collapse cube")
+
         for s in config.sci_objects:
             #cd into the science directory 
             location_prefix = redux_dir + "/" + sci_dir + "/" + s + "/" 
             Cufiles = glob.glob(location_prefix + "CuFeR*_sci_*.fits")
-
-            #makes sure there are actually data cubes made from wavelength resampled, fiber extracted data in the sci directory 
-            #If data cubes were made from fiber extracted fibers that do not wl resample they do not contain WCS info needed
-            if len(Cufiles) == 0:
-                sys.exit("You must build data cubes from wavelength resampled, fiber extracted data before running collapse cube")
 
             #user defined wavelength range to collapse cube 
             low_wave  = config.col_wave_range[0]
