@@ -1372,7 +1372,8 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                     skyframe = skyframes[closest_index]
                     #define the scale factor to scale up sky exposure to to deal with different expsosure times between sky and sci frames
                     #scale factor for the sky frame is the sci exposure time divided by they sky frame exposure time
-                    skyscale = float(s.exptime)/float(skytimes[closest_index])
+                    #this scales by exposure time and additionally by a factor the user chooses 
+                    skyscale = float(s.exptime)/float(skytimes[closest_index]) + config.sky_scaling
                     subtractskyframe(s,skyframe,side,skyscale,distmodel,fibermodel,subskyopts)
 
         else:
