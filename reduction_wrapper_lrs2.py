@@ -969,10 +969,14 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             skyframes_orig.append(skyframe)
             skyframe_objs.append(skyframe.object)
 
+        #remove duplicate images from the sky frame list and object list
+        skyframe_orig = list(set(skyframes_orig))
+        skyframe_objs = list(set(skyframe_objs))
+
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("Objects used for sky frames: "+str(skyframe_objs))
         for f in skyframes_orig:
-            print ("Sky frames: "+op.join(f.origloc, f.actionbase[f.ccdpos] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + f.ccdpos + '.fits'))
+            print ("    Sky frames: "+op.join(f.origloc, f.actionbase[f.ccdpos] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + f.ccdpos + '.fits'))
         #now the sky frames are added to the science frames for reduction
         sframes_orig = sframes_orig + skyframes_orig
 
