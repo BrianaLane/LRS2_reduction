@@ -66,6 +66,7 @@ window_size 	= 200 			#[integer] Size (in image lines) of moving window for sky 
 sky_kappa 		=[3.5,3.5]		#[floatarray] Lower and upper kappa for final sky kappa-sigma clipping.
 smoothing 		= 2.0 			#[float] Smoothing factor for approximating spline.
 sn_thresh		= 15 			#[float] Minimum signal to noise to flag fiber as continuum and ignore it during sky generation.
+sky_scaling 	= 1 			#[float] Scale the sky by this factor before subtracting. (** only for when sky frames used **)
 
 #--------------------#
 # fiber extract opts #
