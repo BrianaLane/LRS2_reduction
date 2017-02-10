@@ -158,6 +158,24 @@
 
 		>>> python reduction_wrapper_lrs2.py -config "path/name_of_config.py"
 
+----------------------------
+5) Upadating LRS2 reduction:
+----------------------------
+
+- I recommend periodically making sure your version of the LRS2 reduction software is up to date
+- Changes to the script can be tracked on my LRS2_reduction github: https://github.com/BrianaLane/LRS2_reduction
+- If you copy the entire LRS2_reduction directory to your work folder you can pull changes made to your version
+- To update your LRS2_reduction version in your work directory:
+
+		>>> cd LRS2_reduction
+		>>> git pull
+
+- Edits you may have made to lrs2_config.py may be incompatable with the new version you are trying to pull
+- You can disregard the changes to pull in the update with the following command inside your LRS2_reduction directory: 
+
+		>>> git stash
+		>>> git pull
+
 ===============================================
 # Running LRS2 reduction on your own computer 
 ===============================================
