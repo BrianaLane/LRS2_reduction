@@ -1582,7 +1582,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                     print('\n')
 
             #if num_cubes is 0: all cubes out of wavelength range of users choice 
-            if num_cubes == 0:
+            if len(Cufiles) > 0 and num_cubes == 0:
                 print ("Wavelength range you choose for collapse cube is out of range")
                 sys.exit("This LRS2-"+config.LRS2_spec+" data set ranges between "+str(np.amin(min_wave_set))+" and "+str(np.amax(max_wave_set))+" Angstroms")
 
