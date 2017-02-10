@@ -614,8 +614,8 @@ def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
 
 def subtractskyframe(sciframe,skyframe,side,skyscale,distmodel,fibermodel,opts):
     
-    scifile = op.join ( sciframe.origloc, 'sci', sciframe.object, sciframe.actionbase[side] + sciframe.basename + '_' + sciframe.ifuslot + '_' + sciframe.type + '_' + side + '.fits') 
-    skyfile = op.join ( skyframe.origloc, 'sci', skyframe.object, skyframe.actionbase[side] + skyframe.basename + '_' + skyframe.ifuslot + '_' + skyframe.type + '_' + side + '.fits') 
+    scifile = op.join ( redux_dir, 'sci', sciframe.object, sciframe.actionbase[side] + sciframe.basename + '_' + sciframe.ifuslot + '_' + sciframe.type + '_' + side + '.fits') 
+    skyfile = op.join ( redux_dir, 'sci', skyframe.object, skyframe.actionbase[side] + skyframe.basename + '_' + skyframe.ifuslot + '_' + skyframe.type + '_' + side + '.fits') 
 
     skymaster = '-X ' + skyfile 
 
