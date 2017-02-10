@@ -619,7 +619,7 @@ def subtractskyframe(sciframe,skyframe,side,skyscale,distmodel,fibermodel,opts):
 
     skymaster = '-X ' + skyfile 
 
-    command = 'subtractsky %s --x %s -X %s -D %s -F %s -d %s -f %s %s' % (opts,skyscale,skyfile, distmodel, fibermodel, distmodel,fibermodel,scifile)  
+    command = 'subtractsky %s --x-sky-scaling %s -X %s -D %s -F %s -d %s -f %s %s' % (opts,skyscale,skyfile, distmodel, fibermodel, distmodel,fibermodel,scifile)  
 
     run_cure_command( command, 0 )
         
@@ -928,8 +928,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
     if len(config.sci_objects) == 0:
         config.sci_objects = sci_obj_names
-        print ("No science objects choosen in config so all science frames will be reduced")
-        print (config.sci_objects)
+        sys.exit("No science objects choosen. You must choose science objects to be reduced")
 
     sframes_lis = []
     spframes_lis = []
@@ -979,8 +978,11 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("    Objects used for sky frames: "+str(skyframe_objs))
+
         #now the sky frames are added to the science frames for reduction
         sframes_orig = sframes_orig + skyframes_orig
+        #The sky objects are added to the sci object list so the files are sorted properly 
+        config.sci_objects = config.sci_objects + skyframe_objs
 
     else:
         sky_side = None
