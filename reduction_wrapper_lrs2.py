@@ -960,18 +960,22 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         allskyframes = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and (a.cal_side == sky_side)]
         skyexptime = [a.exptime for a in allskyframes] #finds exposure time for all of the sky frames
 
-        skyframes_orig = []
-        skyframe_objs  = []
+        skyframe_index = []
         #loops through and finds the sky frame with the clostest exposure time to each science frame expsoure time
         for s in sci_exptime:
             closest_index = min(range(len(skyexptime)), key=lambda i: abs(skyexptime[i]-s))
-            skyframe = allskyframes[closest_index]
+            skyframe_index.append(closest_index)
+
+        #remove duplicate incdecies to make sure there are not duplciate images in the skyframe list
+        skyframe_index = list(set(skyframe_index))
+
+        skyframes_orig = []
+        skyframe_objs  = []
+        #appends the skyframe and the skyframe object name to lists (excluding duplicates)
+        for s in skyframe_index:
+            skyframe = allskyframes[s]
             skyframes_orig.append(skyframe)
             skyframe_objs.append(skyframe.object)
-
-        #remove duplicate images from the sky frame list and object list
-        skyframe_orig = list(set(skyframes_orig))
-        skyframe_objs = list(set(skyframe_objs))
 
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("Objects used for sky frames: "+str(skyframe_objs))
