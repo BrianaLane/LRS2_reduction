@@ -619,7 +619,7 @@ def subtractskyframe(sciframe,skyframe,side,skyscale,distmodel,fibermodel,opts):
 
     skymaster = '-X ' + skyfile 
 
-    command = 'subtractsky %s --x %s -X %s -D %s -F %s -d %s -f %s %s' % (opts,skyscale,skyfile, distmodel, fibermodel, distmodel,fibermodel,f)  
+    command = 'subtractsky %s --x %s -X %s -D %s -F %s -d %s -f %s %s' % (opts,skyscale,skyfile, distmodel, fibermodel, distmodel,fibermodel,scifile)  
 
     run_cure_command( command, 0 )
         
