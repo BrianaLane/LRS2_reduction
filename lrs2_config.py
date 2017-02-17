@@ -31,6 +31,10 @@ sci_objects 	= ["SHELA_z4gal_0503678",]
 #If False fibers in the science frame are used to build the sky model
 #Script automatically finds sky frame from night observations and scales exposure
 use_sky_frames 		= False 
+#If you would like to force it to use a certain frame or the automatic routine does not work
+#enter a list of observation folders (full path) here, if empty will automatically search for frames
+#ex. ["/work/03946/hetdex/maverick/20160731/lrs2/lrs20000005", "/work/03946/hetdex/maverick/20160731lrs2/lrs2000020"]
+user_skyframes 		= []
 
 #Make sure to change this so it points to the lrs2_config folder in your LRS2_reduction directory
 configdir       = "/home/04195/bindahl/LRS2_reduction/lrs2_config"	#path to your lrs2_config folder

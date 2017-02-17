@@ -614,8 +614,8 @@ def subtractsky(frames,side,distmodel,fibermodel,opts,skymaster=""):
 
 def subtractskyframe(sciframe,skyframe,side,skyscale,distmodel,fibermodel,opts):
     
-    scifile = op.join ( redux_dir, sci_dir, sciframe.object, sciframe.actionbase[side] + sciframe.basename + '_' + sciframe.ifuslot + '_' + sciframe.type + '_' + side + '.fits') 
-    skyfile = op.join ( redux_dir, sci_dir, skyframe.object, skyframe.actionbase[side] + skyframe.basename + '_' + skyframe.ifuslot + '_' + skyframe.type + '_' + side + '.fits') 
+    scifile = op.join ( redux_dir, sci_dir, sciframe.object, 'pses' + sciframe.basename + '_' + sciframe.ifuslot + '_' + sciframe.type + '_' + side + '.fits') 
+    skyfile = op.join ( redux_dir, sci_dir, skyframe.object, 'pses' + skyframe.basename + '_' + skyframe.ifuslot + '_' + skyframe.type + '_' + side + '.fits') 
 
     skymaster = '-X ' + skyfile 
 
@@ -947,34 +947,60 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     sci_exptime = list(set([float(s.exptime) for s in sframes_orig])) #finds exposure time for all the sci frames
 
     #Finds sky frames if the use choose to use sky frames in the config file
-    if config.use_sky_frames:
-        if first_run == True:
-            sys.exit("Sky frame subtraction cannot be done with shared-risk LRS2_data")
-
-        #looks for frames with same ucam as specid but the objects names show pointing to other side. These will be sky frames
+    if config.use_sky_frames  
         if config.LRS2_spec == 'R':
             sky_side = 'B'
         else:
             sky_side = 'R'
-        allskyframes = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and (a.cal_side == sky_side)]
-        skyexptime = [a.exptime for a in allskyframes] #finds exposure time for all of the sky frames
 
-        skyframe_index = []
-        #loops through and finds the sky frame with the clostest exposure time to each science frame expsoure time
-        for s in sci_exptime:
-            closest_index = min(range(len(skyexptime)), key=lambda i: abs(skyexptime[i]-s))
-            skyframe_index.append(closest_index)
+        #automatically searches for sky frames if the user did not give paths to sky frames
+        if len(config.user_skyframes) == 0:
+            print("Automatically searching for sky frames")
+            if first_run == True:
+                print ("Automatic search for sky frames cannot be done with shared-risk LRS2_data")
+                sys.exit("You must give sky frame paths in user_skyframes in lrs2_config.py")
 
-        #remove duplicate incdecies to make sure there are not duplciate images in the skyframe list
-        skyframe_index = list(set(skyframe_index))
+            #looks for frames with same ucam as specid but the objects names show pointing to other side. These will be sky frames
+            allskyframes = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and (a.cal_side == sky_side)]
+            skyexptime = [a.exptime for a in allskyframes] #finds exposure time for all of the sky frames
 
-        skyframes_orig = []
-        skyframe_objs  = []
-        #appends the skyframe and the skyframe object name to lists (excluding duplicates)
-        for s in skyframe_index:
-            skyframe = allskyframes[s]
-            skyframes_orig.append(skyframe)
-            skyframe_objs.append(skyframe.object)
+            skyframe_index = []
+            #loops through and finds the sky frame with the clostest exposure time to each science frame expsoure time
+            for s in sci_exptime:
+                closest_index = min(range(len(skyexptime)), key=lambda i: abs(skyexptime[i]-s))
+                skyframe_index.append(closest_index)
+
+            #remove duplicate incdecies to make sure there are not duplciate images in the skyframe list
+            skyframe_index = list(set(skyframe_index))
+
+            skyframes_orig = []
+            skyframe_objs  = []
+            skytimes       = []
+            #appends the skyframe and the skyframe object name to lists (excluding duplicates)
+            for s in skyframe_index:
+                skyframe = allskyframes[s]
+                skyframes_orig.append(skyframe)
+                skyframe_objs.append(skyframe.object)
+                skytimes.append(skyframe.exptime)
+
+        #if they user provided sky frame paths use these sky frames instead of searching for frames
+        elif len(config.user_skyframes) > 0:
+            print("Finding user's sky frames")
+            #need find the files corresponding to the observation folders the user provided 
+            user_sky_list = []
+            for s in config.use_sky_frames:
+                user_sky_list.append(glob.glob(op.join(s,'exp*/lrs2/*.fits')))
+            skyframes_first = [] 
+            for f in config.user_sky_list:            
+                temp, temp1, temp2 = op.basename ( f ).split('_')
+                amp                = temp1[3:5]
+                if amp == "LL":
+                    a = VirusFrame( f ) 
+                    skyframes_first.append(copy.deepcopy(a)) 
+
+            skyframes_orig = [a for a in skyframes_first if a.type == "sci" and (a.specid == ucam) and (a.cal_side == sky_side or a.cal_side == None)]
+            skyframe_objs  = [a.object for a in skyframes_orig]
+            skytimes       = [s.exptime for s in skyframes_orig]
 
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("    Objects used for sky frames: "+str(skyframe_objs))
@@ -1361,19 +1387,17 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             print ('    +++++++++++++++++++')
             for side in SPECBIG:            
                 #Sfiles = glob.glob(redux_dir + "/" + sci_dir + "/*/" + "p*_sci_"+side+".fits")
-                skyframes = [s for s in sframes if s.cal_side == sky_side]
-                skytimes  = [s.exptime for s in skyframes]
-                sciframes = [s for s in sframes if s.cal_side == config.LRS2_spec]
-                for s in sciframes:
-                    distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
-                    fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
+                #skyframes = [s for s in sframes if s.cal_side == sky_side]
+                distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
+                fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
+                for s in sframes_orig:
                     #find the sky frame with the closest exposure time 
                     closest_index = min(range(len(skytimes)), key=lambda i: abs(float(skytimes[i])-float(s.exptime)))
-                    skyframe = skyframes[closest_index]
+                    skyframe = skyframes_orig[closest_index]
                     #define the scale factor to scale up sky exposure to to deal with different expsosure times between sky and sci frames
                     #scale factor for the sky frame is the sci exposure time divided by they sky frame exposure time
                     #this scales by exposure time and additionally by a factor the user chooses 
-                    skyscale = float(s.exptime)/float(skytimes[closest_index]) + config.sky_scaling
+                    skyscale = float(s.exptime)/float(skytimes[closest_index]) * config.sky_scaling
                     subtractskyframe(s,skyframe,side,skyscale,distmodel,fibermodel,subskyopts)
 
         else:
