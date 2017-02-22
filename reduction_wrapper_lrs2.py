@@ -947,7 +947,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     sci_exptime = list(set([float(s.exptime) for s in sframes_orig])) #finds exposure time for all the sci frames
 
     #Finds sky frames if the use choose to use sky frames in the config file
-    if config.use_sky_frames  
+    if config.use_sky_frames:  
         if config.LRS2_spec == 'R':
             sky_side = 'B'
         else:
