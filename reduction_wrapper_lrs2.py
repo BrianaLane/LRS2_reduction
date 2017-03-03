@@ -1000,7 +1000,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
             #build virus frames for each sky frame found 
             skyframes_first = [] 
-            for f in config.user_sky_list:            
+            for f in user_sky_list:            
                 temp, temp1, temp2 = op.basename ( f ).split('_')
                 amp                = temp1[3:5]
                 if amp == "LL":
