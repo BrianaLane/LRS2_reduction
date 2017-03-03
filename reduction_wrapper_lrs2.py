@@ -1008,7 +1008,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     skyframes_first.append(copy.deepcopy(a)) 
 
             skyframes_orig = [a for a in skyframes_first if a.type == "sci" and (a.specid == ucam) and (a.cal_side == sky_side or a.cal_side == None)]
-            skyframe_names  = [a.basename for a in skyframes_orig]
+            skyframe_names  = [(a.basename + '_' + a.ifuslot + '_' + a.type) for a in skyframes_orig]
+            skyframe_objs  = [a.object for a in skyframes_orig]
             skytimes       = [s.exptime for s in skyframes_orig]
 
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
