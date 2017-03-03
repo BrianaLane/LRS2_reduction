@@ -962,6 +962,9 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
             #looks for frames with same ucam as specid but the objects names show pointing to other side. These will be sky frames
             allskyframes = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and (a.cal_side == sky_side)]
+            #Check that sky frames were found 
+            if len(allskyframes) == 0:
+                sys.exit("NO SKY FRAMES FOUND: enter path to frame in user_skyframes in lrs2_config.py")
             skyexptime = [a.exptime for a in allskyframes] #finds exposure time for all of the sky frames
 
             skyframe_index = []
@@ -990,6 +993,12 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             user_sky_list = []
             for s in config.use_sky_frames:
                 user_sky_list.append(glob.glob(op.join(s,'exp*/lrs2/*.fits')))
+
+            #Check that sky frames were found in the user provided path    
+            if len(user_sky_list) == 0:
+                sys.exit("NO SKY FRAMES FOUND: check your path provided")
+
+            #build virus frames for each sky frame found 
             skyframes_first = [] 
             for f in config.user_sky_list:            
                 temp, temp1, temp2 = op.basename ( f ).split('_')
