@@ -965,6 +965,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             #Check that sky frames were found 
             if len(allskyframes) == 0:
                 sys.exit("NO SKY FRAMES FOUND: enter a path to a sky frame in user_skyframes in lrs2_config.py")
+
             skyexptime = [a.exptime for a in allskyframes] #finds exposure time for all of the sky frames
 
             skyframe_index = []
@@ -976,15 +977,11 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             #remove duplicate incdecies to make sure there are not duplciate images in the skyframe list
             skyframe_index = list(set(skyframe_index))
 
-            skyframes_orig = []
-            skyframe_objs  = []
-            skytimes       = []
             #appends the skyframe and the skyframe object name to lists (excluding duplicates)
+            skyframes_orig = []
             for s in skyframe_index:
                 skyframe = allskyframes[s]
                 skyframes_orig.append(skyframe)
-                skyframe_objs.append(skyframe.object)
-                skytimes.append(skyframe.exptime)
 
         #if they user provided sky frame paths use these sky frames instead of searching for frames
         elif len(config.user_skyframes) > 0:
@@ -1008,9 +1005,10 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     skyframes_first.append(copy.deepcopy(a)) 
 
             skyframes_orig = [a for a in skyframes_first if a.type == "sci" and (a.specid == ucam) and (a.cal_side == sky_side or a.cal_side == None)]
-            skyframe_names  = [(a.basename + '_' + a.ifuslot + '_' + a.type) for a in skyframes_orig]
-            skyframe_objs  = [a.object for a in skyframes_orig]
-            skytimes       = [s.exptime for s in skyframes_orig]
+            
+        skyframe_names  = [(a.basename + '_' + a.ifuslot + '_' + a.type) for a in skyframes_orig]
+        skyframe_objs  = [a.object for a in skyframes_orig]
+        skytimes       = [s.exptime for s in skyframes_orig]
 
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("    Sky frames found: "+str(skyframe_names))
