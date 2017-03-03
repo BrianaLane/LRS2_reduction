@@ -998,9 +998,12 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             if len(user_sky_list) == 0:
                 sys.exit("NO SKY FRAMES FOUND: check your path provided")
 
+            print(user_sky_list)
+
             #build virus frames for each sky frame found 
             skyframes_first = [] 
-            for f in user_sky_list:            
+            for f in user_sky_list:    
+                print (f)        
                 temp, temp1, temp2 = op.basename ( f ).split('_')
                 amp                = temp1[3:5]
                 if amp == "LL":
