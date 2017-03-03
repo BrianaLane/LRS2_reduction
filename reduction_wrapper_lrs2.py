@@ -992,18 +992,15 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             #need find the files corresponding to the observation folders the user provided 
             user_sky_list = []
             for s in config.user_skyframes:
-                user_sky_list.append(glob.glob(op.join(s,'exp*/lrs2/*.fits')))
+                user_sky_list.extend(glob.glob(op.join(s,'exp*/lrs2/*.fits')))
 
             #Check that sky frames were found in the user provided path    
             if len(user_sky_list) == 0:
                 sys.exit("NO SKY FRAMES FOUND: check your path provided")
 
-            print(user_sky_list)
-
             #build virus frames for each sky frame found 
             skyframes_first = [] 
             for f in user_sky_list:    
-                print (f)        
                 temp, temp1, temp2 = op.basename ( f ).split('_')
                 amp                = temp1[3:5]
                 if amp == "LL":
