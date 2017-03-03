@@ -964,7 +964,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             allskyframes = [a for a in aframes if a.type == "sci" and (a.specid == ucam) and (a.cal_side == sky_side)]
             #Check that sky frames were found 
             if len(allskyframes) == 0:
-                sys.exit("NO SKY FRAMES FOUND: enter path to frame in user_skyframes in lrs2_config.py")
+                sys.exit("NO SKY FRAMES FOUND: enter a path to a sky frame in user_skyframes in lrs2_config.py")
             skyexptime = [a.exptime for a in allskyframes] #finds exposure time for all of the sky frames
 
             skyframe_index = []
@@ -991,7 +991,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             print("Finding user's sky frames")
             #need find the files corresponding to the observation folders the user provided 
             user_sky_list = []
-            for s in config.use_sky_frames:
+            for s in config.user_skyframes:
                 user_sky_list.append(glob.glob(op.join(s,'exp*/lrs2/*.fits')))
 
             #Check that sky frames were found in the user provided path    
