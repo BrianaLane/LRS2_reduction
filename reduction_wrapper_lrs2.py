@@ -1013,6 +1013,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("    Sky frames found: "+str(skyframe_names))
 
+        only_sframes = sframes_orig
+
         #now the sky frames are added to the science frames for reduction
         sframes_orig = sframes_orig + skyframes_orig
         #The sky objects are added to the sci object list so the files are sorted properly 
@@ -1061,7 +1063,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     a = VirusFrame( f.filename ) 
                     vframes.append(copy.deepcopy(a))
                         
-    return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP, sky_side
+    return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig
 
 
 def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
@@ -1087,7 +1089,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     print ('*************************')
 
     #holds the VIRUS frames for all of the data 
-    vframes, first_run, ucam, LAMP_DICT, FLT_LAMP, sky_side = initial_setup ( DIR_DICT, config.sci_objects, redux_dir )
+    vframes, first_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig = initial_setup ( DIR_DICT, config.sci_objects, redux_dir )
 
     #inital reference frame
     f1 = vframes[0]
@@ -1398,7 +1400,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 #skyframes = [s for s in sframes if s.cal_side == sky_side]
                 distmodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.dist' )
                 fibermodel = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fmod' )
-                for s in sframes_orig:
+                for s in only_sframes:
                     #find the sky frame with the closest exposure time 
                     closest_index = min(range(len(skytimes)), key=lambda i: abs(float(skytimes[i])-float(s.exptime)))
                     skyframe = skyframes_orig[closest_index]
