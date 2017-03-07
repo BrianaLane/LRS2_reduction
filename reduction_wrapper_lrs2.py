@@ -1279,10 +1279,10 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
                 meantracefits(side, ucam, redux_dir, 'mastertrace', traceopts, fframes)
             #If there was only one frame provided that frame becomes the mastertrace
             else:
-                filename = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframesselect]
+                filename = [op.join ( f.origloc, f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframes]
                 mastername = op.join ( redux_dir , 'mastertrace' + '_' + ucam + '_' + side + '.fits')
                 shutil.copy ( filename[0], mastername )
-                efilename = [op.join ( f.origloc, 'e.' + f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframesselect]
+                efilename = [op.join ( f.origloc, 'e.' + f.actionbase[side] + f.basename + '_' + f.ifuslot + '_' + f.type + '_' + side + '.fits') for f in fframes]
                 emastername = op.join ( redux_dir , 'e.mastertrace' + '_' + ucam + '_' + side + '.fits')
                 shutil.copy ( efilename[0], emastername )
 
