@@ -1021,6 +1021,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         config.sci_objects = config.sci_objects + skyframe_objs
 
     else:
+        only_sframes = sframes_orig
         sky_side = None
 
     #Check that data is correct
