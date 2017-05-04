@@ -245,10 +245,7 @@ class VirusFrame:
             if len(hdulist[0].header['OBJECT'].split('_')) == 1:
                 self.object   = hdulist[0].header['OBJECT']
                 self.cal_side = None
-            elif self.type != 'sci':
-                self.object   = hdulist[0].header['OBJECT'].split('_')[0]
-                self.cal_side = hdulist[0].header['OBJECT'].split('_')[1]
-            else:
+            elif len(hdulist[0].header['OBJECT'].split('_')) > 1:
                 #sci objects can have multiple '_' so have to check if the last one is a tag R or B
                 end_term = hdulist[0].header['OBJECT'].split('_')[-1]
                 if (end_term == 'R') or (end_term == 'B'):
@@ -257,6 +254,14 @@ class VirusFrame:
                 else:
                     self.object   = hdulist[0].header['OBJECT']
                     self.cal_side = None
+
+                if len(hdulist[0].header['OBJECT'].split('_')) = 4 and self.type = 'flt':
+                    self.length   = hdulist[0].header['OBJECT'].split('_')[2]
+                else:
+                    self.length   = None
+            else:
+                
+
 
             #print (self.type, self.object, self.cal_side)
 
@@ -737,6 +742,15 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         first_run = True
         print ("WARNING:You are running reduction on shared-risk LRS2_data - calibration data set may not be ideal")
 
+    #if data was taken before 2016, 03, 15 then the only long exposure LDLS flats were taken and are saturated in the orange channel
+    #if the data was taken before this data, flats from the orange channel are taken from the config folder
+    #if the date is before the calibratio script change second_run = True
+    lrs2B_calChange = datetime(2017, 03, 15)
+    if data_time > lrs2B_calChange:
+        second_run = False
+    else:
+        second_run = True
+
     #checks which unit to reduce and sets ucam (specid) - If B decides if old or new specid based of first_run found in intial_setup()
     if config.LRS2_spec == 'R':
         ucam = "502"
@@ -819,7 +833,23 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     fframes_orig.append(copy.deepcopy(a)) 
                     num = num + 1
 
-        print ('Including '+str(num)+' long exposure Qth flats for far-red channel reduction')
+    #if old second run data and LRS2-B - need to use short LDLS exposures in config for orange channel
+    if (ucam == '501' or ucam = '503') and second_run:
+        fframes_orig = []
+        shortLDLS_folds  = config.configdir+'/short_OrgFlts'
+        shortLDLS_files = close_cal_date(shortLDLS_folds,data_time)
+
+        num = 0
+        for f in shortLDLS_files:            
+            temp, temp1, temp2 = op.basename ( f ).split('_')
+            amp                = temp1[3:5]
+            if amp == "LL":
+                a = VirusFrame( f ) 
+                if a.specid == ucam:
+                    fframes_orig.append(copy.deepcopy(a)) 
+                    num = num + 1
+
+        print ('Including '+str(num)+' short exposure LDLS flats for orange channel reduction')
 
     if len(fframes_orig) == 0:
         sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
@@ -989,11 +1019,11 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             #need find the files corresponding to the observation folders the user provided 
             user_sky_list = []
             for s in config.user_skyframes:
-                user_sky_list.extend(glob.glob(op.join(s,'exp*/lrs2/*.fits')))
+                user_sky_list.extend(glob.glob(op.join(s,'lrs2/*.fits')))
 
             #Check that sky frames were found in the user provided path    
             if len(user_sky_list) == 0:
-                sys.exit("NO SKY FRAMES FOUND: check your path provided")
+                sys.exit("NO SKY FRAMES FOUND: Check your the path you provided. It needs to point to an exposure folder.")
 
             #build virus frames for each sky frame found 
             skyframes_first = [] 
@@ -1013,16 +1043,23 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ("There were "+str(len(skyframes_orig))+" sky frames found")
         print ("    Sky frames found: "+str(skyframe_names))
 
+        #defines the frames that are just the science frames before the sky frames are added to the sci list
         only_sframes = sframes_orig
 
         #now the sky frames are added to the science frames for reduction
         sframes_orig = sframes_orig + skyframes_orig
         #The sky objects are added to the sci object list so the files are sorted properly 
         config.sci_objects = config.sci_objects + skyframe_objs
+        #make sure there are not duplicate object names 
+        config.sci_objects = list(set(config.sci_objects))
 
     else:
+        #because sky frames are not added this is the same as just the sci frames list
+        #variable made because it has to be returned in the function
         only_sframes = sframes_orig
         sky_side = None
+        skytimes = None
+        skyframes_orig = None
 
     #Check that data is correct
     if len(spframes_orig) == 0:
@@ -1064,7 +1101,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     a = VirusFrame( f.filename ) 
                     vframes.append(copy.deepcopy(a))
                         
-    return vframes, first_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig, skytimes
+    return vframes, first_run, second_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig, skytimes
 
 
 def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
@@ -1090,7 +1127,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     print ('*************************')
 
     #holds the VIRUS frames for all of the data 
-    vframes, first_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig, skytimes = initial_setup ( DIR_DICT, config.sci_objects, redux_dir )
+    vframes, first_run, second_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig, skytimes = initial_setup ( DIR_DICT, config.sci_objects, redux_dir )
 
     #inital reference frame
     f1 = vframes[0]
