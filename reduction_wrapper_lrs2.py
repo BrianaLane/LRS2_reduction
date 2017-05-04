@@ -255,7 +255,7 @@ class VirusFrame:
                     self.object   = hdulist[0].header['OBJECT']
                     self.cal_side = None
 
-                if len(hdulist[0].header['OBJECT'].split('_')) = 4 and self.type = 'flt':
+                if len(hdulist[0].header['OBJECT'].split('_')) == 4 and self.type = 'flt':
                     self.length   = hdulist[0].header['OBJECT'].split('_')[2]
                 else:
                     self.length   = None
