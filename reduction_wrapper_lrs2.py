@@ -246,7 +246,7 @@ class VirusFrame:
                 self.object   = hdulist[0].header['OBJECT']
                 self.cal_side = None
             elif len(hdulist[0].header['OBJECT'].split('_')) > 1:
-                #sci objects can have multiple '_' so have to check if the last one is a tag R or B
+                #sci objects and flats can have multiple '_' so have to check if the last one is a tag R or B
                 end_term = hdulist[0].header['OBJECT'].split('_')[-1]
                 if (end_term == 'R') or (end_term == 'B'):
                     self.object   = hdulist[0].header['OBJECT'][0:-2]
@@ -255,15 +255,11 @@ class VirusFrame:
                     self.object   = hdulist[0].header['OBJECT']
                     self.cal_side = None
 
-                if len(hdulist[0].header['OBJECT'].split('_')) == 4 and self.type == 'flt':
-                    self.length   = hdulist[0].header['OBJECT'].split('_')[2]
-                else:
-                    self.length   = None
-            else:
+                # if len(hdulist[0].header['OBJECT'].split('_')) == 4 and self.type == 'flt':
+                #     self.length   = hdulist[0].header['OBJECT'].split('_')[2]
+                # else:
+                #     self.length   = None
                 
-
-
-            #print (self.type, self.object, self.cal_side)
 
     def addbase(self, action, amp = None, side = None):
         if self.clean:
@@ -813,28 +809,29 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     # flt frames #
     #------------#
 
-    fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == FLT_LAMP] # gives just "flt" frames
-
-    print ('Found '+str(len(fframes_orig))+' '+FLT_LAMP+' flt frames')
-
     #if old first run data and LRS2-R - need to use long Qth exposures in config
-    if (ucam == '502') and first_run:
-        fframes_orig = []
-        longQthR_folds  = config.configdir+'/longExpCals/long_Qth_R'
-        longQthR_files = close_cal_date(longQthR_folds,data_time)
+    if ucam == '502':
+        if first_run:
+            fframes_orig = []
+            longQthR_folds  = config.configdir+'/longExpCals/long_Qth_R'
+            longQthR_files = close_cal_date(longQthR_folds,data_time)
 
-        num = 0
-        for f in longQthR_files:            
-            temp, temp1, temp2 = op.basename ( f ).split('_')
-            amp                = temp1[3:5]
-            if amp == "LL":
-                a = VirusFrame( f ) 
-                if a.specid == ucam:
-                    fframes_orig.append(copy.deepcopy(a)) 
-                    num = num + 1
+            num = 0
+            for f in longQthR_files:            
+                temp, temp1, temp2 = op.basename ( f ).split('_')
+                amp                = temp1[3:5]
+                if amp == "LL":
+                    a = VirusFrame( f ) 
+                    if a.specid == ucam:
+                        fframes_orig.append(copy.deepcopy(a)) 
+                        num = num + 1
+        elif second_run:
+            fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'ldls'] # gives just "flt" frames
+        else:
+            fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'ldls_long'] # gives just "flt" frames
 
     #if old second run data and LRS2-B - need to use short LDLS exposures in config for orange channel
-    if (ucam == '501' or ucam = '503') and second_run:
+    elif (ucam == '501') or (ucam = '503' and second_run):
         fframes_orig = []
         shortLDLS_folds  = config.configdir+'/short_OrgFlts'
         shortLDLS_files = close_cal_date(shortLDLS_folds,data_time)
@@ -849,7 +846,12 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     fframes_orig.append(copy.deepcopy(a)) 
                     num = num + 1
 
+    else:
+        fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'ldls_short'] # gives just "flt" frames
+
         print ('Including '+str(num)+' short exposure LDLS flats for orange channel reduction')
+
+    print ('Found '+str(len(fframes_orig))+' '+FLT_LAMP+' flt frames')
 
     if len(fframes_orig) == 0:
         sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
