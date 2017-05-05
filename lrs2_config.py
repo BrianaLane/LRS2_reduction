@@ -61,8 +61,9 @@ CLEAN_AFTER_DONE = True 	#If true it will delete intermediate reduction files fo
 subDarks 		= False			#[True/False] If True darks will be subtracted from science images (default: False)
 dividePixFlt 	= False			#[True/False] If True images will be divided by pixel flats (default: False)
 rmCosmics	 	= True  		#[True/False] If True the program L.A.Cosmic is used to eliminate cosmic rays (default: True)
-sigclip 		= 5.0 			# rmCosmics variable - increase this if you detect cosmics where there are none (default: 5.0)
-sigfrac 		= 5.0 			# rmCosmics variable - increase this if normal stars are detected as cosmics (default: 5.0)
+#rmCosmics variables
+sigclip 		= 5.0 			# [float] detection limit for cosmic rays (sigma). Increase this if you detect cosmics where there are none (default: 5.0)
+sigfrac 		= 5.0 			# [float] contrast limit between CR and underlying object. Increase this if normal stars are detected as cosmics (default: 5.0)
 
 #----------------------#
 # sky subtraction opts #
