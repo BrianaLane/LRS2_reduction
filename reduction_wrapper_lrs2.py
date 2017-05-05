@@ -854,7 +854,6 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
     print ('Found '+str(len(fframes_orig))+' '+FLT_LAMP+' flt frames')
 
-    print fframes_orig
     if len(fframes_orig) == 0:
         sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
 
