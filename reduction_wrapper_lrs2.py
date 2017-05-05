@@ -471,7 +471,7 @@ def rmcosmicfits(frames, amp):
         im_RN = header['RDNOISE']
 
         # Build the object :
-        c = cosmics.cosmicsimage(array, gain=im_gain, readnoise=im_RN, satlevel = 65535.0, sigclip = 7.0, sigfrac = 0.3, objlim = 7.0)
+        c = cosmics.cosmicsimage(array, gain=im_gain, readnoise=im_RN, satlevel = 65535.0, sigclip = 7.0, sigfrac = config.sigfrac, objlim = config.objlim)
         # There are other options, check the manual...
 
         # Run the full artillery :

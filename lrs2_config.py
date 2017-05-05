@@ -12,7 +12,6 @@
 #Reduction is run on only one spectograph unit at a time because mastertrace and arcs will be different
 #LRS2-Blue contains the UV (370-470nm) and orange (460-700nm) channels (B)
 #LRS2-Red contains the red (650-842nm) and far-red (818-1050nm) channels (R)
-
 LRS2_spec    	= 'B' 					#choose R or B only 
 
 #path and name of the folder where reduction is run - NOTE: this folder is created by the script so the path has to exist but the folder does not
@@ -26,18 +25,18 @@ date_folder     = "/work/03946/hetdex/maverick/20160731"
 #Take off the '_R' or '_B' at the end of the object name. The script will choose the correct one based on LRS2_spec you choose
 sci_objects 	= ["SHELA_z4gal_0503678",]	
 
+#Make sure to change this so it points to the lrs2_config folder in your LRS2_reduction directory
+configdir       = "/home/04195/bindahl/LRS2_reduction/lrs2_config"	#path to your lrs2_config folder
+
 #If you want to use a sky frame for sky subtraction set this to True
 #This is only recommended for very bright object or extened sources that fill most of the field
 #If False fibers in the science frame are used to build the sky model
 #Script automatically finds sky frame from night observations and scales exposure
 use_sky_frames 		= False 
 #If you would like to force it to use a certain frame or the automatic routine does not work
-#enter a list of observation folders (full path) here, if empty will automatically search for frames
-#ex. ["/work/03946/hetdex/maverick/20160731/lrs2/lrs20000005", "/work/03946/hetdex/maverick/20160731lrs2/lrs2000020"]
+#enter a list of exposure folders (full path) here, if empty will automatically search for frames
+#ex. ["/work/03946/hetdex/maverick/20160731/lrs2/lrs20000005/exp01", "/work/03946/hetdex/maverick/20160731lrs2/lrs2000020/exp02"]
 user_skyframes 		= []
-
-#Make sure to change this so it points to the lrs2_config folder in your LRS2_reduction directory
-configdir       = "/home/04195/bindahl/LRS2_reduction/lrs2_config"	#path to your lrs2_config folder
 
 #*******************************#
 # choose reduction steps to run #
@@ -62,6 +61,8 @@ CLEAN_AFTER_DONE = True 	#If true it will delete intermediate reduction files fo
 subDarks 		= False			#[True/False] If True darks will be subtracted from science images (default: False)
 dividePixFlt 	= False			#[True/False] If True images will be divided by pixel flats (default: False)
 rmCosmics	 	= True  		#[True/False] If True the program L.A.Cosmic is used to eliminate cosmic rays (default: True)
+sigclip 		= 5.0 			# rmCosmics variable - increase this if you detect cosmics where there are none (default: 5.0)
+sigfrac 		= 5.0 			# rmCosmics variable - increase this if normal stars are detected as cosmics (default: 5.0)
 
 #----------------------#
 # sky subtraction opts #
