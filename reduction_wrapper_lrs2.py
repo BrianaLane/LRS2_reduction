@@ -833,7 +833,6 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
     #if old second run data and LRS2-B - need to use short LDLS exposures in config for orange channel
     elif (ucam == '501') or (ucam == '503' and second_run):
-        print 'Blue '+ucam+' '+first_run+' '+second_run
         fframes_orig = []
         shortLDLS_folds  = config.configdir+'/short_OrgFlts'
         shortLDLS_files = close_cal_date(shortLDLS_folds,data_time)
