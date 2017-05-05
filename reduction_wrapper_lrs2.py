@@ -825,11 +825,15 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     if a.specid == ucam:
                         fframes_orig.append(copy.deepcopy(a)) 
                         num = num + 1
+
+            print ('Including '+str(num)+' long exposure Qth flats for far-red channel reduction')
+
         else:
             fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'Qth'] # gives just "flt" frames
 
     #if old second run data and LRS2-B - need to use short LDLS exposures in config for orange channel
     elif (ucam == '501') or (ucam == '503' and second_run):
+        print 'Blue '+ucam+' '+first_run+' '+second_run
         fframes_orig = []
         shortLDLS_folds  = config.configdir+'/short_OrgFlts'
         shortLDLS_files = close_cal_date(shortLDLS_folds,data_time)
@@ -844,13 +848,14 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     fframes_orig.append(copy.deepcopy(a)) 
                     num = num + 1
 
+        print ('Including '+str(num)+' short exposure LDLS flats for orange channel reduction')
+
     else:
         fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'ldls_short'] # gives just "flt" frames
 
-        print ('Including '+str(num)+' short exposure LDLS flats for orange channel reduction')
-
     print ('Found '+str(len(fframes_orig))+' '+FLT_LAMP+' flt frames')
 
+    print fframes_orig
     if len(fframes_orig) == 0:
         sys.exit("No "+FLT_LAMP+" flat lamp exposures were found for this night")
 
