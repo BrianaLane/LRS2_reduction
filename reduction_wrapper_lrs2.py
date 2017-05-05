@@ -825,10 +825,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     if a.specid == ucam:
                         fframes_orig.append(copy.deepcopy(a)) 
                         num = num + 1
-        elif second_run:
-            fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'ldls'] # gives just "flt" frames
         else:
-            fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'ldls_long'] # gives just "flt" frames
+            fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'Qth'] # gives just "flt" frames
 
     #if old second run data and LRS2-B - need to use short LDLS exposures in config for orange channel
     elif (ucam == '501') or (ucam == '503' and second_run):
