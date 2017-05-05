@@ -134,7 +134,8 @@
 	  * __lines_files__	     - These files defined the pixel and wavelength to find the arc lines for building the wavelength solution
 	  * __mapping_files__	 - These files contain the mapping of the fibers onto the field for building data cubes
 	  * __pixel_flats__	     - These files are the pixels flats for each CCD that can be optionally divided during reduction
-	  * __longExpCals__	     - This are 1800sec FeAr exposures used for pinning down the wavelength solution for the far-red channel
+	  * __longExpCals__	     - These are 1800sec FeAr exposures used for pinning down the wavelength solution for the far-red channel
+	  * __short_OrgFlts__	 - These replace longer exposure flats in early LRS2 data that were saturating the orange channel
 
 --------------------------
 4) Running LRS2 reduction:
@@ -262,3 +263,9 @@
 	- The pses shows that it has been through basic reduction (pses), sky subtracted (S), 
 		fiber extracted with wavelength resampling (FeR), and then build into a data cube (Cu)
 	- The error file for this frame would be: e.CuFeRSpses20160731T094822.4_056_sci_R.fits
+
+-----------------------------------
+2) Finding the Wavelength Solution: 
+-----------------------------------
+
+-If you have run fiber extraction with wavelength resampling then you 
