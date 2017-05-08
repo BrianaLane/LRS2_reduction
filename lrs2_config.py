@@ -62,8 +62,9 @@ subDarks 		= False			#[True/False] If True darks will be subtracted from science
 dividePixFlt 	= False			#[True/False] If True images will be divided by pixel flats (default: False)
 rmCosmics	 	= True  		#[True/False] If True the program L.A.Cosmic is used to eliminate cosmic rays (default: True)
 #rmCosmics variables
-sigclip 		= 5.0 			# [float] detection limit for cosmic rays (sigma). Increase this if you detect cosmics where there are none (default: 5.0)
-sigfrac 		= 5.0 			# [float] contrast limit between CR and underlying object. Increase this if normal stars are detected as cosmics (default: 5.0)
+sigclip 		= 5.0 			#[float] detection limit for cosmic rays (sigma). Increase if you detect cosmics where there are none (default: 5.0)
+sigfrac 		= 0.3 			#[float] fractional detection limit for neighbouring pixels (default: 0.3)
+objlim  		= 5.0 			#[float] contrast limit between CR and underlying object. Increase if normal stars are detected as cosmics (default: 5.0)
 
 #----------------------#
 # sky subtraction opts #
