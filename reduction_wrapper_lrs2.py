@@ -1270,7 +1270,11 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         for side in SPECBIG:
             for lamp in LAMP_DICT.values():
                 #Creates a masterarc frame for each arc lamp in LAMP_DICT
-                lframesselect = [l for l in lframes if l.object == lamp]
+                #Added if statement to handle the fact that sometimes they call Cd Cd-A in the OBJECT header
+                if lamp == 'Cd':
+                    lframesselect = [l for l in lframes if (l.object == lamp or l.object == 'Cd-A')]
+                else:
+                    lframesselect = [l for l in lframes if l.object == lamp]
                 #If more than one image for that lamp take median image 
                 if len(lframesselect)>1:
                     meanlampfits(side, ucam, lamp, redux_dir, 'masterarc' , arcopts, lframesselect) 
