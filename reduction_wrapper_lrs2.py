@@ -850,7 +850,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ('Including '+str(num)+' short exposure LDLS flats for orange channel reduction')
 
     else:
-        fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'ldls_short'] # gives just "flt" frames
+        fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'ldls_long'] # gives just "flt" frames
 
     print ('Found '+str(len(fframes_orig))+' '+FLT_LAMP+' flt frames')
 
