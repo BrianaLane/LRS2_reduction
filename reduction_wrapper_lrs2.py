@@ -917,6 +917,11 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     #----------------#
     if ucam == '503':
         cdframes = [t for t in tframes if t.type == "cmp" and t.object == "Cd"] # gives just "Cd" frames
+        #They changed the object for Cd frames to be Cd-A at some point 
+        #added this to make sure they are found for later data
+        cdaframes = [t for t in tframes if t.type == "cmp" and t.object == "Cd-A"] # gives just "Cd-A" frames
+
+        cdframes = cdframes + cdaframes #add both lists together to get Cd frames found with either name 
 
         if len(cdframes) == 0:
             sys.exit("No Cd lamp exposures were found for this night")
