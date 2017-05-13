@@ -1417,16 +1417,16 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         for side in SPECBIG:  
             #selects wavelength range and ref arc line for each channel
             if (config.LRS2_spec == 'B') and (side == 'L'):
-                wave_range = '[3600,4700]'
+                wave_range = '3600,4700'
                 ref_line = 6
             if (config.LRS2_spec == 'B') and (side == 'R'):
-                wave_range = '[4600,7000]'
+                wave_range = '4600,7000'
                 ref_line = 7
             if (config.LRS2_spec == 'R') and (side == 'L'):
-                wave_range = '[6500,8500]'
+                wave_range = '6500,8500'
                 ref_line = 3
             if (config.LRS2_spec == 'R') and (side == 'R'):
-                wave_range = '[8000,10500]'
+                wave_range = '8000,10500'
                 ref_line = 1
             #copy the lines file used to this directory 
             shutil.copy ( op.join(linesdir,'lines' + '_' + side + '_' + ucam +'.par'), op.join(redux_dir,'lines' + '_' + side + '_' + ucam +'.par' ) )
