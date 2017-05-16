@@ -2,7 +2,7 @@
 # Instructions for LRS2 Reduction 
 ==================================
 
-- This file contains instructions for running the CURE based reduction for LRS2 using the python script reduction_wrapper_lrs2.py
+- This file contains instructions for running CURE based reductions for LRS2 using the python script reduction_wrapper_lrs2.py
 - For more information about CURE refer to the the CURE page on the HETDEX wiki: 
 	https://luna.mpe.mpg.de/wikihetdex/index.php/Cure_-_the_data_analysis_system_for_HETDEX 
 
@@ -12,7 +12,7 @@
 - It is recommended you run your reductions on TACC because CURE and python builds already exit. 
 	- You will also not have to download and store data onto your computer.
 	- However instructions are also provided for setting up reduction on your own computer if you wish to do so. 
-	- NOTE: whether you run reduction on TACC or you own computer you will need a TACC account to access your data.
+	- NOTE: whether you run reduction on TACC or your own computer you will need a TACC account to access your data.
 
 =================================================
 # Understanding your data and the data stucture 
@@ -22,15 +22,15 @@
 1) Data structure on Maverick:
 ------------------------------
 
-- On Maverick inside of the data folder (/work/03946/hetdex/maverick/) you will see all of the date folders
+- On Maverick, inside the data folder (/work/03946/hetdex/maverick/) you will see all of the date folders
 - Each date folder contains all of the data taken that night. 
 - Inside each data folder are folders for the instruments used that night on the HET. Your data will be in 'lrs2'
 - Inside the lrs2 folder are folders for all of the observations taken that night (cals and science targets) with lrs2
-- Inside each observation folder there are folders for each exposure taken for that object (ex exp01)
+- Inside each observation folder there are folders for each exposure taken for that object (ex. exp01)
 - Inside each exposure folder there is a folder called 'lrs2' and that contains the 4 or 8 fits files for that exposure 
 
 - An exposure with one LRS2 unit gives you 4 fits files. There are two detectors in each unit and each has 2 amplifiers.
-- If you observed with both units (red and blue) you will have 8 fit files per exposure. 
+- If you observed with both units (red and blue) you will have 8 fits files per exposure. 
 
 -------------------------------
 1) Information from file names:
@@ -41,7 +41,7 @@
 
 		(format: yyyymmddThhmmss.s)
 
-- The 3 digit number after the first underscore (056) tells you the IFU slot ID for the unit. This tells you which LRS2 unit this is from
+- The 3 digit number after the first underscore (056) tells you the IFU slot ID for the unit. This tells you which LRS2 unit this data is from
 
 		LRS2-Blue: 056
 		LRS2-Red : 066
@@ -56,13 +56,14 @@
 - The letter after that will either be 'L' or 'U' for lower or upper. This tells with amplifier of that detector it is. 
    * NOTE: basic reduction will orient U and L properly and combine them.
    * So after reduction instead of LU, LL, RU, RL you will just have L and R images. 
-- The part after the second underscore tells you the image type. There are 5 image types:
+- The part after the second underscore tells you the image type. There are 6 image types:
 
 		zro - bias
+		twi - twilight flats
 		flt - flats (taken with either the LDLS or Qth lamps)
 		cmp - arc lamps or comps (taken with either Cd, Hg, FeAr, or Kr)
 		drk - darks
-		sci - science frames (twilight flats are also sci)
+		sci - science frames
 
 ================================================
 # Running LRS2 reduction on TACC - RECOMMENDED 
@@ -92,7 +93,7 @@
 - CURE and all python packages needed for reduction are already on TACC.
 - You must first set up these paths in you "~/.bashrc" file in your account on Maverick.
 
-- Open your "~/.bashrc" file and add the following lines at the end: 
+- Open your "~/.bashrc" file in your prefered text editor and add the following lines at the end: 
 	(NOTE: The last 3 are optional but are useful for running VIRUS reduction scripts or viewing fits files)
 
 		umask 022
@@ -116,22 +117,26 @@
 		>>> cd
 		>>> chmod a+rx ../username
 
------------------------------------------------
-3) Obtaining reduction script and config files: 
------------------------------------------------
+------------------------------------------------
+3) Obtaining reduction scripts and config files: 
+------------------------------------------------
 
 - Inside your work directory (cdw) make a copy of the LRS2_reduction folder with the following commands: 
 
 		>>> cdw 
 		>>> cp -r /home/04195/bindahl/LRS2_reduction ./ 
 
+		* If you prefer you can also clone the directory straight from my git hub
+
+		>>> git clone https://github.com/BrianaLane/LRS2_reduction.git
+
 - You should now have a folder in your work directory called LRS2_reduction. This folder contains the following files and folder:
 
-	1. __reduction_wrapper_lrs2.py__ - This is the folder that runs the reductions. You should never have to edit this file. 
+	1. __reduction_wrapper_lrs2.py__ - This is the script that runs the reductions. You should never have to edit this file. 
 	2. __lrs2_config.py__ 			 - This is the config file where the user defines the data and opts for their reduction
 	3. __cosmics.py__ 				 - This is the script that runs L.A.comsic in the reduction (http://obswww.unige.ch/~tewes/cosmics_dot_py/)
-	4. __lrs2_config__ 				 - This is a folder that contains all of the configurations files needed for LRS2 reduction 
-	  * __lines_files__	     - These files defined the pixel and wavelength to find the arc lines for building the wavelength solution
+	4. __lrs2_config__ 				 - This is a folder that contains all of the configuration files needed for LRS2 reduction 
+	  * __lines_files__	     - These files define the pixel and wavelength to find the arc lines for building the wavelength solution
 	  * __mapping_files__	 - These files contain the mapping of the fibers onto the field for building data cubes
 	  * __pixel_flats__	     - These files are the pixels flats for each CCD that can be optionally divided during reduction
 	  * __longExpCals__	     - These are 1800sec FeAr exposures used for pinning down the wavelength solution for the far-red channel
@@ -154,7 +159,6 @@
 	* For example you could make your own config file copies with settings you want to save 
 	* or you can use the saved config files in one of your redux directories. 
 - To run the reduction script with a different config file:
-	* First you must copy the config file to your LRS2_reduction directory if it is not already there
 	* Run the script with the following command
 
 		>>> python reduction_wrapper_lrs2.py -config "path/name_of_config.py"
@@ -177,6 +181,9 @@
 		>>> git stash
 		>>> git pull
 
+- Before you do a 'git stash' you might want to save a copy of your lrs2_config.py file to a different name. 
+- Any file with a name other than those listed in section 3 will be unaffected by a 'git stash' or 'git pull'
+
 ===============================================
 # Running LRS2 reduction on your own computer 
 ===============================================
@@ -186,7 +193,7 @@
 -------------------------------------------
 
 - If you don't already have CURE installed you have to do that first
-	- Instructions for installing CURE can be found in the CURE cookbook on HETDEX wiki (link at top of page)
+	- Instructions for installing CURE can be found in the CURE cookbook on the HETDEX wiki (link at top of page)
 
 - Once CURE is installed you have to edit specconf.h to set up CURE for LRS2 data 
 	- Open specconf.h in a text editor (file found inside cure/libcure/)
@@ -212,7 +219,7 @@
 3) Obtaining LRS2 data from Maverick: 
 -------------------------------------
 
-- You must scp your data off of Maverick from /work/03946/hetdex/maverick/ onto your computer
+- You must copy your data off of Maverick from /work/03946/hetdex/maverick/ onto your computer
 - It is important that you maintain the same folder structure which is: 
 
 		date_folder/lrs2/lrs000####/exp##/lrs2/*.fits 
@@ -224,7 +231,7 @@
 ---------------------------------------------------------------
 
 - Refer to sections 3 and 4 under 'Running LRS2 reduction on TACC' above
-- The one difference is you will scp the LRS2_reduction directory onto your computer instead of copying it into your TACC directory
+- The one difference is you will copy the LRS2_reduction directory onto your computer instead of copying it into your TACC directory
 
 =========================================
 # Understanding reduction data products 
@@ -268,4 +275,10 @@
 2) Finding the Wavelength Solution: 
 -----------------------------------
 
--If you have run fiber extraction with wavelength resampling then you 
+- If you have run fiber extraction with wavelength resampling then a wavelength solution can be found in the headers of the FeR files
+- Inside the header of your fiber extracted files you need the keywords 'CRVAL1' and 'CRDELT1'. 
+
+		CRVAL1 - gives you the wavelength of the first pixel
+		CRDELT1 - gives you the angstroms per pixel 
+
+- These can be used to reconstruct the wavelength array for your spectra. 
