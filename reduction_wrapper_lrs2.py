@@ -153,7 +153,7 @@ headfitsopts    = "-m -k EXPTIME -v 1 -V"
 darkopts        = "--maxmem 1024 -s -t -m -k 2.8" 
 arcopts         = "--maxmem 1024 -s -t -m -k 2.8"
 traceopts       = "--maxmem 1024 -s -t -m -k 2.8"
-deformeropts    = "-p 7 -n 4 -C 10 --debug --dump_psf_data"
+deformeropts    = "-p 7 -C 10 --debug --dump_psf_data"
 subskyopts      = "-J --output-both -w "+str(config.window_size)+" -k "+str(config.sky_kappa[0])+','+str(config.sky_kappa[1])+" -m "+str(config.smoothing)+" -T "+str(config.sn_thresh)
 fibextractopts  = "-P"
 cubeopts        = "-a "+str(config.sky_sampling)+" -k "+str(config.max_distance)+" -s "+str(config.cube_sigma)
@@ -591,9 +591,9 @@ def meantracefits(side, specid, dest_dir, basename , opts, frames):
     return command
     
 
-def deformer(mastertrace,masterarc,linesfile,wave_range,ref_line,opts):
+def deformer(mastertrace,masterarc,linesfile,wave_range,ref_line,sigma,opts):
     
-    command = 'deformer %s -s %s -W %s -o \"%s\" -l %s -a %s %s' % (opts,ref_line,wave_range,redux_dir,linesfile,masterarc,mastertrace)  
+    command = 'deformer -I %s,0.0,0.0,2.0 --fix-exp --fix-h2 -P 0,0.5,0.15,1.0,1.0 %s -s %s -W %s -o \"%s\" -l %s -a %s %s' % (sigma,opts,ref_line,wave_range,redux_dir,linesfile,masterarc,mastertrace)  
 
     run_cure_command( command, 0 )
 
@@ -1418,15 +1418,19 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             #selects wavelength range and ref arc line for each channel
             if (config.LRS2_spec == 'B') and (side == 'L'):
                 wave_range = '3600,4700'
+                sigma = 2.3
                 ref_line = 6
             if (config.LRS2_spec == 'B') and (side == 'R'):
                 wave_range = '4600,7000'
+                simga = 2.1
                 ref_line = 7
             if (config.LRS2_spec == 'R') and (side == 'L'):
                 wave_range = '6500,8500'
+                sigma = 2.3
                 ref_line = 3
             if (config.LRS2_spec == 'R') and (side == 'R'):
                 wave_range = '8000,10500'
+                sigma = 2.5
                 ref_line = 1
             #copy the lines file used to this directory 
             shutil.copy ( op.join(linesdir,'lines' + '_' + side + '_' + ucam +'.par'), op.join(redux_dir,'lines' + '_' + side + '_' + ucam +'.par' ) )
@@ -1434,7 +1438,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             mastertrace = op.join ( redux_dir, 'mastertrace' + '_' + ucam + '_' + side + '.fits' )
             masterarc   = op.join ( redux_dir, 'masterarc' + '_' + ucam + '_' + side + '.fits' )
             linefile    = op.join ( redux_dir, 'lines' + '_' + side + '_' + ucam +'.par' )
-            deformer ( mastertrace, masterarc, linefile, wave_range, ref_line, deformeropts)
+            deformer ( mastertrace, masterarc, linefile, wave_range, ref_line, sigma, deformeropts)
     
     # Run sky subtraction            
     if config.subsky:  
