@@ -713,6 +713,11 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     aframes = [] # will fill this list with VirusFrame class objects for each image
     #make a list of all fits files in the redux directory 
     date_ims = glob.glob(op.join(config.date_folder,'lrs2/lrs2*/exp*/lrs2/*.fits'))
+
+    #Check that it found files
+    if len(date_ims)==0:
+        sys.exit("Found no files. Check your date_folder path in config")
+
     for f in date_ims:            
         temp, temp1, temp2 = op.basename ( f ).split('_')
         amp                = temp1[3:5]
@@ -1415,7 +1420,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
             sys.exit("You must run basic reduction before you can run deformer")
 
         for side in SPECBIG:  
-            #selects wavelength range and ref arc line for each channel
+            #selects wavelength range, sigma, and ref arc line for each channel
             if (config.LRS2_spec == 'B') and (side == 'L'):
                 wave_range = '3600,4700'
                 sigma = 2.3
