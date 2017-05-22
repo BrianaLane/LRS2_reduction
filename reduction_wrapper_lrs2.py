@@ -593,7 +593,7 @@ def meantracefits(side, specid, dest_dir, basename , opts, frames):
 
 def deformer(mastertrace,masterarc,linesfile,wave_range,ref_line,sigma,opts):
     
-    command = 'deformer -I %s,0.0,0.0,2.0 --fix-exp --fix-h2 -P 0,0.5,0.15,1.0,1.0 %s -s %s -W %s -o \"%s\" -l %s -a %s %s' % (sigma,opts,ref_line,wave_range,redux_dir,linesfile,masterarc,mastertrace)  
+    command = 'deformer -I %s,0.0,0.0,2.0 --fix-exp --fix-h2 -P 0,0.5,0.15,1.0 %s -s %s -W %s -o \"%s\" -l %s -a %s %s' % (sigma,opts,ref_line,wave_range,redux_dir,linesfile,masterarc,mastertrace)  
 
     run_cure_command( command, 0 )
 
