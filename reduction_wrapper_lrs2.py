@@ -848,7 +848,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             amp                = temp1[3:5]
             if amp == "LL":
                 a = VirusFrame( f ) 
-                if a.specid == ('501' or '503'):
+                if (a.specid == '501' or a.specid =='503'):
                     fframes_orig.append(copy.deepcopy(a)) 
                     num = num + 1
 
