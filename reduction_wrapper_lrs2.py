@@ -1,12 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Friday April  8 02:10:02 2016
-
-Reduces LRS2 data for either the blue or red channels
-This script reads user parameters from lrs2_config.py 
-
-@author: brianaindahl, gregz
-"""
 from __future__ import print_function
 
 import numpy as np
@@ -38,16 +29,6 @@ import importlib
 #############################
 
 def parse_args(argv=None):
-    """Parse the command line arguments
-    Parameters
-    ----------
-    argv : list of string
-        arguments to parse; if ``None``, ``sys.argv`` is used
-    Returns
-    -------
-    Namespace
-        parsed arguments
-    """
     description = "config_file"
     parser = ap.ArgumentParser(description=description,
                             formatter_class=ap.ArgumentDefaultsHelpFormatter)
