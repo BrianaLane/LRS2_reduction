@@ -201,8 +201,6 @@ class VirusFrame:
             self.month                  = int(self.basename.split('T')[0][4:6])
             self.day                    = int(self.basename.split('T')[0][6:8])
             self.clean                  = config.CLEAN_AFTER_DONE
-            self.trimsec                = "2:2065,1:1032" 
-            self.biassec                = "2066:2128,1:1032" 
 
             ###### READ IN THE HEADER AND NECESSARY KEYWORDS ######
             self.actionbase = {}
@@ -213,7 +211,15 @@ class VirusFrame:
             self.actionbase["R"] = initial_base  
 
             rootname          = op.join (self.origloc, self.basename + '_' + self.ifuslot + 'LL_' + self.type + '.fits' )
-            hdulist           = pyfits.open ( rootname )       
+            hdulist           = pyfits.open ( rootname )  
+
+            if (self.year > 2016) and (self.month > 3) and (self.day > 9):
+                self.trimsec                = "1:2064,1:1032"
+                self.biassec                = "2065:2128,1:1032"
+            else:
+                self.trimsec                = "2:2065,1:1032" 
+                self.biassec                = "2066:2128,1:1032" 
+
             self.specid      = str(hdulist[0].header['SPECID']) 
             self.orggain     = hdulist[0].header['GAIN']
             self.orgrdnoise  = hdulist[0].header['RDNOISE']
