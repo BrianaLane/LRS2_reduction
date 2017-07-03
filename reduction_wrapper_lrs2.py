@@ -1147,18 +1147,18 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
-    if os.path.isfile(redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py') == True:
-        os.remove(redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py')
-        shutil.copy ( os.path.dirname(os.path.realpath(__file__))+'/lrs2_config.py', redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py' )
+    if os.path.isfile(redux_dir+'/'+config_file_name+'_copy.py') == True:
+        os.remove(redux_dir+'/'+config_file_name+'_copy.py')
+        shutil.copy ( os.path.dirname(os.path.realpath(__file__))+'/'+config_file_name, redux_dir+'/'+config_file_name+'_copy.py' )
     else:
-        shutil.copy ( os.path.dirname(os.path.realpath(__file__))+'/lrs2_config.py', redux_dir+'/lrs2_config_'+redux_dir.split('/')[-1]+'_copy.py' )
+        shutil.copy ( os.path.dirname(os.path.realpath(__file__))+'/'+config_file_name, redux_dir+'/'+config_file_name+'_copy.py' )
 
     # Run basic reduction
     if config.basic:
         for sp in SPEC:
             trimsec = f1.trimsec # Trimsec assumed to be the same for all frames of a given amp
             biassec = f1.biassec # Biassec assumed to be the same for all frames of a given amp
-            print ('**************************')
+            print ('**************************'
             print ('* MAKE ERROR FRAME FOR '+sp+' *')
             print ('**************************')
             mkerrorframe ( vframes, sp )               # for all frames
