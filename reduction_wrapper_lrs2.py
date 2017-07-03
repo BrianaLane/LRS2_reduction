@@ -923,6 +923,9 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
         print ('Found '+str(len(faframes))+' FeAr frames')
 
+        if len(faframes) == 0:
+            sys.exit("No FeAr lamp exposures were found for this night")
+
         #if LRS2-B need to include long FeAr cmps for UV channel
         longFeArB_folds  = config.configdir+'/longExpCals/long_FeAr_B'
         longFeArB_files = close_cal_date(longFeArB_folds,data_time)
@@ -938,9 +941,6 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     num = num + 1
 
         print ('Including '+str(num)+' long exposure FeAr comps for UV channel reduction')
-
-        if len(faframes) == 0:
-            sys.exit("No FeAr lamp exposures were found for this night")
 
         lframes_orig  = hgframes + cdframes + faframes # gives just "cmp" frames
 
