@@ -1158,7 +1158,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         for sp in SPEC:
             trimsec = f1.trimsec # Trimsec assumed to be the same for all frames of a given amp
             biassec = f1.biassec # Biassec assumed to be the same for all frames of a given amp
-            print ('**************************'
+            print ('**************************')
             print ('* MAKE ERROR FRAME FOR '+sp+' *')
             print ('**************************')
             mkerrorframe ( vframes, sp )               # for all frames
