@@ -213,12 +213,15 @@ class VirusFrame:
             rootname          = op.join (self.origloc, self.basename + '_' + self.ifuslot + 'LL_' + self.type + '.fits' )
             hdulist           = pyfits.open ( rootname )  
 
-            if (self.year > 2016) and (self.month > 3) and (self.day > 9):
-                self.trimsec                = "1:2064,1:1032"
-                self.biassec                = "2065:2128,1:1032"
-            else:
-                self.trimsec                = "2:2065,1:1032" 
-                self.biassec                = "2066:2128,1:1032" 
+            # if (self.year > 2016) and (self.month > 3) and (self.day > 9):
+            #     self.trimsec                = "1:2064,1:1032"
+            #     self.biassec                = "2065:2128,1:1032"
+            # else:
+            #     self.trimsec                = "2:2065,1:1032" 
+            #     self.biassec                = "2066:2128,1:1032" 
+
+            self.trimsec                = "2:2065,1:1032" 
+            self.biassec                = "2066:2128,1:1032"
 
             self.specid      = str(hdulist[0].header['SPECID']) 
             self.orggain     = hdulist[0].header['GAIN']
@@ -310,7 +313,7 @@ class ditherinfo(object):
         f.flush()
 
 #####################################################
-# Define For Running Data Reduction Steps Functions #
+# Define Functions For Running Data Reduction Steps #
 #####################################################
 
 def run_cure_command(command, suppress_output=0, debug=1):
@@ -923,11 +926,8 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
 
         print ('Found '+str(len(faframes))+' FeAr frames')
 
-        if len(faframes) == 0:
-            sys.exit("No FeAr lamp exposures were found for this night")
-
         #if LRS2-B need to include long FeAr cmps for UV channel
-        longFeArB_folds  = config.configdir+'/longExpCals/long_FeAr_B'
+        longFeArB_folds = config.configdir+'/longExpCals/long_FeAr_B'
         longFeArB_files = close_cal_date(longFeArB_folds,data_time)
 
         num = 0
@@ -939,6 +939,9 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                 if a.specid == ucam:
                     faframes.append(copy.deepcopy(a))
                     num = num + 1
+
+        if len(faframes) == 0:
+            sys.exit("No FeAr lamp exposures were found for this night")
 
         print ('Including '+str(num)+' long exposure FeAr comps for UV channel reduction')
 
