@@ -150,7 +150,7 @@ cmp_dir  = "cmp"
 drk_dir  = "drk"
 
 # Dictionary for looping through directory names
-DIR_DICT     = {  0:zro_dir, 1:drk_dir, 2:cmp_dir, 3:flt_dir, 4:sci_dir } 
+DIR_DICT  = {  0:zro_dir, 1:drk_dir, 2:cmp_dir, 3:flt_dir, 4:sci_dir } 
 
 ##########################
 # Building Spec Libaries #
@@ -1109,7 +1109,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
                     a = VirusFrame( f.filename ) 
                     vframes.append(copy.deepcopy(a))
                         
-    return vframes, first_run, second_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig, skytimes
+    return vframes, first_run, second_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig, skytimes, sci_exptime
 
 
 def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
@@ -1135,7 +1135,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     print ('*************************')
 
     #holds the VIRUS frames for all of the data 
-    vframes, first_run, second_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig, skytimes = initial_setup ( DIR_DICT, config.sci_objects, redux_dir )
+    vframes, first_run, second_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig, skytimes, sci_exptime = initial_setup ( DIR_DICT, config.sci_objects, redux_dir )
 
     #inital reference frame
     f1 = vframes[0]
