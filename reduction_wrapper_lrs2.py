@@ -702,7 +702,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
     ####################################################
     aframes = [] # will fill this list with VirusFrame class objects for each image
     #make a list of all fits files in the redux directory 
-    date_ims = glob.glob(op.join(config.date_folder,'lrs2/lrs2*/exp*/lrs2/*.fits'))
+    date_ims = glob.glob(op.join(config.date_folder,'lrs2/lrs2*/exp*/lrs2/2*.fits'))
 
     #Check that it found files
     if len(date_ims)==0:
