@@ -201,6 +201,8 @@ class VirusFrame:
             self.month                  = int(self.basename.split('T')[0][4:6])
             self.day                    = int(self.basename.split('T')[0][6:8])
             self.clean                  = config.CLEAN_AFTER_DONE
+            self.datetime               = datetime(int(self.year), int(self.month), int(self.day))
+            self.changetime             = datetime(2016, 3, 9)
 
             ###### READ IN THE HEADER AND NECESSARY KEYWORDS ######
             self.actionbase = {}
@@ -213,15 +215,14 @@ class VirusFrame:
             rootname          = op.join (self.origloc, self.basename + '_' + self.ifuslot + 'LL_' + self.type + '.fits' )
             hdulist           = pyfits.open ( rootname )  
 
-            # if (self.year > 2016) and (self.month > 3) and (self.day > 9):
-            #     self.trimsec                = "1:2064,1:1032"
-            #     self.biassec                = "2065:2128,1:1032"
-            # else:
-            #     self.trimsec                = "2:2065,1:1032" 
-            #     self.biassec                = "2066:2128,1:1032" 
-
-            self.trimsec                = "2:2065,1:1032" 
-            self.biassec                = "2066:2128,1:1032"
+            #print(self.datetime, self.changetime)
+            if self.datetime > self.changetime:
+                self.trimsec                = "1:2064,1:1032"
+                self.biassec                = "2065:2128,1:1032"
+            else:
+                self.trimsec                = "2:2065,1:1032" 
+                self.biassec                = "2066:2128,1:1032" 
+            #print(self.trimsec, self.biassec)
 
             self.specid      = str(hdulist[0].header['SPECID']) 
             self.orggain     = hdulist[0].header['GAIN']
@@ -709,7 +710,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         sys.exit("Found no files. Check your date_folder path in config")
 
     for f in date_ims:            
-        temp, temp1, temp2 = op.basename ( f ).split('_')
+        temp, temp1, temp2 = op.basename( f ).split('_')
         amp                = temp1[3:5]
         if amp == "LL":
             a = VirusFrame( f ) 
@@ -733,7 +734,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         first_run = True
         print ("WARNING:You are running reduction on shared-risk LRS2_data - calibration data set may not be ideal")
 
-    #if data was taken before 2016, 03, 15 then the only long exposure LDLS flats were taken and are saturated in the orange channel
+    #if data was taken before 2017, 03, 15 then the only long exposure LDLS flats were taken and are saturated in the orange channel
     #if the data was taken before this data, flats from the orange channel are taken from the config folder
     #if the date is before the calibratio script change second_run = True
     lrs2B_calChange = datetime(2017, 03, 15)
@@ -779,7 +780,6 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         #finds the closest date/folder to the date the data was taken 
         close_date      = min(folds, key=lambda x:abs(x-data_time))
         close_date_name = str(close_date.year).zfill(4)+str(close_date.month).zfill(2)+str(close_date.day).zfill(2)
-
         #returns a list of all of the files names of the files in that date folder 
         long_files = glob.glob(fold_list+'/'+close_date_name+'/exp*/lrs2/*.fits')
         return long_files
@@ -833,7 +833,7 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         shortLDLS_files = close_cal_date(shortLDLS_folds,data_time)
 
         num = 0
-        for f in shortLDLS_files:            
+        for f in shortLDLS_files:         
             temp, temp1, temp2 = op.basename ( f ).split('_')
             amp                = temp1[3:5]
             if amp == "LL":
@@ -845,8 +845,9 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
         print ('Including '+str(num)+' short exposure LDLS flats for orange channel reduction')
 
     else:
-        fframes_orig   = [t for t in tframes if t.type == "flt" and t.object == 'ldls_long'] # gives just "flt" frames
-
+        fframes_orig1   = [t for t in tframes if t.type == "flt" and t.object == 'ldls_long' ] # gives just "flt" frames
+        fframes_orig2   = [t for t in tframes if t.type == "flt" and  t.object == 'ldls'] 
+        fframes_orig = fframes_orig1 +fframes_orig2
     print ('Found '+str(len(fframes_orig))+' '+FLT_LAMP+' flt frames')
 
     if len(fframes_orig) == 0:
@@ -944,7 +945,6 @@ def initial_setup ( DIR_DICT = None, sci_objects = None, redux_dir = None):
             sys.exit("No FeAr lamp exposures were found for this night")
 
         print ('Including '+str(num)+' long exposure FeAr comps for UV channel reduction')
-
         lframes_orig  = hgframes + cdframes + faframes # gives just "cmp" frames
 
     #------------#
@@ -1137,9 +1137,6 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     #holds the VIRUS frames for all of the data 
     vframes, first_run, second_run, ucam, LAMP_DICT, FLT_LAMP, sky_side, only_sframes, skyframes_orig, skytimes, sci_exptime = initial_setup ( DIR_DICT, config.sci_objects, redux_dir )
 
-    #inital reference frame
-    f1 = vframes[0]
-
     zframes  = [v for v in vframes if v.type == "zro" ] # gives just "zro" frames
     dframes  = [v for v in vframes if v.type == "drk" ] # gives just "drk" frames
     lframes  = [v for v in vframes if v.type == "cmp" ] # gives just "cmp" frames
@@ -1147,6 +1144,10 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
     sframes  = [v for v in vframes if v.type == "sci" ] # gives just "sci" frames
     cframes  = fframes + lframes # gives "flt" and "cmp" frames
     oframes  = cframes + sframes + dframes # gives "flt", "drk", "cmp", and "sci" frames (basically just not "zro")
+
+    #inital reference frame
+    f1 = sframes[0]
+    print(f1, f1.trimsec)
 
     #make a copy of the lsr2_config file to be added to your directory
     #if the file exists - remove the file and replace it.
@@ -1161,6 +1162,7 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         for sp in SPEC:
             trimsec = f1.trimsec # Trimsec assumed to be the same for all frames of a given amp
             biassec = f1.biassec # Biassec assumed to be the same for all frames of a given amp
+            print('TRIM: ',trimsec, biassec)
             print ('**************************')
             print ('* MAKE ERROR FRAME FOR '+sp+' *')
             print ('**************************')
@@ -1264,12 +1266,14 @@ def basicred(DIR_DICT, sci_objects, redux_dir, basic = False, dividepf = False,
         print ('**********************')
         for side in SPECBIG:
             for lamp in LAMP_DICT.values():
+                frs = [l.object for l in lframes]
+
                 #Creates a masterarc frame for each arc lamp in LAMP_DICT
                 #Added if statement to handle the fact that sometimes they call Cd Cd-A in the OBJECT header
                 if lamp == 'Cd':
                     lframesselect = [l for l in lframes if (l.object == lamp or l.object == 'Cd-A')]
                 else:
-                    lframesselect = [l for l in lframes if l.object == lamp]
+                    lframesselect = [l for l in lframes if (l.object == lamp or l.object == lamp+'_long')]                   
                 #If more than one image for that lamp take median image 
                 if len(lframesselect)>1:
                     meanlampfits(side, ucam, lamp, redux_dir, 'masterarc' , arcopts, lframesselect) 
